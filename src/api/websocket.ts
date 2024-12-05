@@ -8,7 +8,8 @@ import {
   WsFill,
   WsUserFunding,
   WsLiquidation,
-  WsOrder
+  WsOrder,
+  Candle
 } from "../types/websocket";
 
 export class HyperliquidWebSocketAPI extends EventEmitter {
@@ -97,7 +98,7 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
   }, delay);
  }
 
- private formatSubscriptionMessage(type: string, coin?: string): WsSubscription {
+ private formatSubscriptionMessage(type: string, coin?: string, interval?: string): WsSubscription {
   const subscription: WsSubscription = {
     method: 'subscribe',
     subscription: {
@@ -107,6 +108,10 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
   
   if (coin) {
     subscription.subscription.coin = coin;
+  }
+
+  if (interval) {
+    subscription.subscription.interval = interval;
   }
   
   return subscription;
@@ -151,6 +156,9 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
     case 'orders':
       this.emit('orders', message.data as WsOrder);
       break;
+    case 'candles':
+      this.emit('candles', message.data as Candle);
+      break;
     default:
       console.warn('Unknown message channel:', message.channel);
   }
@@ -160,7 +168,7 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
   return `${type}:${coin || ""}`;
  }
 
- private async subscribe(type: string, coin?: string): Promise<void> {
+ private async subscribe(type: string, coin?: string, interval?: string): Promise<void> {
   if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
    await this.connect();
   }
@@ -173,7 +181,7 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
 
   return new Promise((resolve, reject) => {
    try {
-    const message = this.formatSubscriptionMessage(type, coin);
+    const message = this.formatSubscriptionMessage(type, coin, interval);
     console.log("Sending subscription:", message); // Debug log
     this.ws!.send(JSON.stringify(message));
     this.subscriptions.add(subKey);
@@ -226,6 +234,15 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
  ): Promise<void> {
   this.on('orders', callback);
   await this.subscribe('orders');
+ }
+
+ public async subscribeToCandles(
+  coin: string,
+  interval: string,
+  callback: (candle: Candle) => void
+ ): Promise<void> {
+  this.on('candles', callback);
+  await this.subscribe('candles', coin, interval);
  }
 
  public close(): void {
