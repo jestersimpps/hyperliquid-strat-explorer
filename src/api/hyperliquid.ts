@@ -1,4 +1,4 @@
-import { MetaResponse, AccountState, AssetContext } from '../types/hyperliquid';
+import { MetaResponse, AccountState, AssetContext, Position } from '../types/hyperliquid';
 
 const API_URL = 'https://api.hyperliquid.xyz/info';
 

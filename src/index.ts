@@ -2,7 +2,7 @@ import { HyperliquidAPI } from './api/hyperliquid';
 
 async function main() {
     const api = new HyperliquidAPI();
-    const address = 'YOUR_WALLET_ADDRESS'; // We'll need to replace this with your actual address
+    const address = '0xF51182207e3687985471E0da21CaCf5FfC552E5d'; // We'll need to replace this with your actual address
     
     try {
         console.log('Fetching account information...');
