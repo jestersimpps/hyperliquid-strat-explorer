@@ -3,6 +3,7 @@ import { MetaResponse, AccountState, AssetContext, Position } from '../types/hyp
 const API_URL = 'https://api.hyperliquid.xyz/info';
 
 export class HyperliquidAPI {
+  private readonly SPOT_API_URL = 'https://api.hyperliquid.xyz/info';
   private async post(body: any): Promise<any> {
     const response = await fetch(API_URL, {
       method: 'POST',
@@ -59,6 +60,26 @@ export class HyperliquidAPI {
       coin,
       startTime,
       endTime,
+    });
+  }
+
+  // Spot Market Methods
+  async getSpotMeta(): Promise<SpotMetaResponse> {
+    return this.post({
+      type: 'spotMeta'
+    });
+  }
+
+  async getSpotMetaAndAssetCtxs(): Promise<[SpotMetaResponse, SpotAssetContext[]]> {
+    return this.post({
+      type: 'spotMetaAndAssetCtxs'
+    });
+  }
+
+  async getSpotAccountState(userAddress: string): Promise<SpotAccountState> {
+    return this.post({
+      type: 'spotClearinghouseState',
+      user: userAddress.toLowerCase()
     });
   }
 }

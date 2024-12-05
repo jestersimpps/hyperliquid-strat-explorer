@@ -41,6 +41,48 @@ export interface Position {
   unrealizedPnl: string;
 }
 
+export interface SpotToken {
+  name: string;
+  szDecimals: number;
+  weiDecimals: number;
+  index: number;
+  tokenId: string;
+  isCanonical: boolean;
+  evmContract: string | null;
+  fullName: string | null;
+}
+
+export interface SpotMarket {
+  name: string;
+  tokens: number[];
+  index: number;
+  isCanonical: boolean;
+}
+
+export interface SpotMetaResponse {
+  tokens: SpotToken[];
+  universe: SpotMarket[];
+}
+
+export interface SpotAssetContext {
+  dayNtlVlm: string;
+  markPx: string;
+  midPx: string;
+  prevDayPx: string;
+}
+
+export interface SpotBalance {
+  coin: string;
+  token: number;
+  hold: string;
+  total: string;
+  entryNtl: string;
+}
+
+export interface SpotAccountState {
+  balances: SpotBalance[];
+}
+
 export interface AccountState {
   assetPositions: {
     position: Position;
