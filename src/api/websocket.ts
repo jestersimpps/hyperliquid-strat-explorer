@@ -106,15 +106,11 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
     }
   };
   
-  if (type === 'klines') {
-    subscription.subscription.name = `kline_${coin}_${interval}`;
-  } else {
-    if (coin) {
-      subscription.subscription.coin = coin;
-    }
-    if (interval) {
-      subscription.subscription.interval = interval;
-    }
+  if (coin) {
+    subscription.subscription.coin = coin;
+  }
+  if (interval) {
+    subscription.subscription.interval = interval;
   }
   
   return subscription;
@@ -159,7 +155,7 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
     case 'orders':
       this.emit('orders', message.data as WsOrder);
       break;
-    case 'klines':
+    case 'candle':
       this.emit('candles', message.data as Candle);
       break;
     default:
@@ -245,7 +241,7 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
   callback: (candle: Candle) => void
  ): Promise<void> {
   this.on('candles', callback);
-  await this.subscribe('klines', coin, interval);
+  await this.subscribe('candle', coin, interval);
  }
 
  public close(): void {
