@@ -1,137 +1,166 @@
-import WebSocket from 'ws';
-import { EventEmitter } from 'events';
-import { WsSubscription, WsMessage } from '../types/websocket';
-
-const WS_URL = process.env.WS_URL || 'wss://api.hyperliquid.xyz/ws';
+import WebSocket from "ws";
+import { EventEmitter } from "events";
 
 export class HyperliquidWebSocketAPI extends EventEmitter {
-  private ws: WebSocket | null = null;
-  private subscriptions: Set<string> = new Set();
-  private reconnectAttempts = 0;
-  private maxReconnectAttempts = 5;
-  private reconnectDelay = 1000;
+ private ws: WebSocket | null = null;
+ private subscriptions: Set<string> = new Set();
+ private reconnectAttempts = 0;
+ private maxReconnectAttempts = 5;
+ private reconnectDelay = 1000;
+ private pingInterval?: NodeJS.Timeout;
+ private readonly WS_URL = "wss://api.hyperliquid.xyz/ws";
 
-  constructor() {
-    super();
-    this.connect();
-  }
+ constructor() {
+  super();
+ }
 
-  private connect(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      if (this.ws?.readyState === WebSocket.OPEN) {
-        resolve();
-        return;
-      }
+ public async connect(): Promise<void> {
+  return new Promise((resolve, reject) => {
+   try {
+    this.ws = new WebSocket(this.WS_URL);
 
-      this.ws = new WebSocket(WS_URL);
-
-      this.ws.on('open', () => {
-        console.log('WebSocket connected');
-        this.reconnectAttempts = 0;
-        this.resubscribe();
-        resolve();
-      });
-
-      this.ws.on('error', (error) => {
-        reject(error);
-      });
-
-    this.ws.on('message', (data: WebSocket.Data) => {
-      try {
-        const message: WsMessage = JSON.parse(data.toString());
-        this.emit(message.channel, message.data);
-      } catch (error) {
-        console.error('Error parsing WebSocket message:', error);
-      }
+    this.ws.on("open", () => {
+     console.log("WebSocket connected");
+     this.reconnectAttempts = 0;
+     this.setupPingInterval();
+     this.resubscribeAll();
+     resolve();
     });
 
-    this.ws.on('close', () => {
-      console.log('WebSocket disconnected');
-      this.handleReconnect();
+    this.ws.on("message", (data: WebSocket.Data) => {
+     try {
+      const message = JSON.parse(data.toString());
+      console.log("Received message:", message); // Debug log
+      this.handleMessage(message);
+     } catch (error) {
+      console.error("WebSocket message:", data.toString());
+      console.error("Parse error:", error);
+     }
     });
 
-    this.ws.on('error', (error) => {
-      console.error('WebSocket error:', error);
+    this.ws.on("close", () => {
+     console.log("WebSocket disconnected");
+     this.cleanup();
+     this.handleReconnect();
     });
+
+    this.ws.on("error", (error) => {
+     console.error("WebSocket error:", error);
+     this.cleanup();
+     reject(error);
+    });
+   } catch (error) {
+    console.error("Connection error:", error);
+    reject(error);
+   }
+  });
+ }
+
+ private async resubscribeAll(): Promise<void> {
+  for (const subKey of this.subscriptions) {
+   const [type, coin] = subKey.split(":");
+   await this.subscribe(type, coin);
+  }
+ }
+
+ private async handleReconnect(): Promise<void> {
+  if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+   console.error("Max reconnection attempts reached");
+   this.emit("maxReconnectAttemptsReached");
+   return;
   }
 
-  private handleReconnect() {
-    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.error('Max reconnection attempts reached');
-      return;
-    }
+  this.reconnectAttempts++;
+  const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1);
 
-    this.reconnectAttempts++;
-    const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1);
-    
-    setTimeout(() => {
-      console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
-      this.connect();
-    }, delay);
-  }
+  console.log(
+   `Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts}) in ${delay}ms`
+  );
 
-  private resubscribe() {
-    for (const subscription of this.subscriptions) {
-      const parsed = JSON.parse(subscription);
-      this.sendMessage(parsed);
-    }
-  }
-
-  private async sendMessage(message: WsSubscription) {
+  setTimeout(async () => {
+   try {
     await this.connect();
-    if (this.ws?.readyState !== WebSocket.OPEN) {
-      throw new Error('WebSocket is not connected');
-    }
-    this.ws.send(JSON.stringify(message));
-  }
+   } catch (error) {
+    console.error("Reconnection failed:", error);
+    this.handleReconnect();
+   }
+  }, delay);
+ }
 
-  async subscribe(subscription: Omit<WsSubscription['subscription'], 'method'>) {
-    const message: WsSubscription = {
-      method: 'subscribe',
-      subscription
+ private formatSubscriptionMessage(type: string, coin?: string): any {
+  switch (type) {
+   case "ticker":
+    return {
+     type: "subscribe",
+     channel: "l2Book",
+     coin: coin,
     };
-    
-    this.subscriptions.add(JSON.stringify(message));
-    await this.sendMessage(message);
+   default:
+    throw new Error(`Unknown subscription type: ${type}`);
+  }
+ }
+
+ private setupPingInterval(): void {
+  this.pingInterval = setInterval(() => {
+   if (this.ws?.readyState === WebSocket.OPEN) {
+    this.ws.ping();
+   }
+  }, 30000);
+ }
+
+ private cleanup(): void {
+  if (this.pingInterval) {
+   clearInterval(this.pingInterval);
+  }
+ }
+
+ private handleMessage(message: any): void {
+  if (message.channel) {
+   this.emit(message.channel, message.data);
+  }
+ }
+
+ private getSubscriptionKey(type: string, coin?: string): string {
+  return `${type}:${coin || ""}`;
+ }
+
+ private async subscribe(type: string, coin?: string): Promise<void> {
+  if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+   await this.connect();
   }
 
-  unsubscribe(subscription: Omit<WsSubscription['subscription'], 'method'>) {
-    const message: WsSubscription = {
-      method: 'unsubscribe',
-      subscription
-    };
-    
-    this.subscriptions.delete(JSON.stringify({ method: 'subscribe', subscription }));
-    this.sendMessage(message);
+  const subKey = this.getSubscriptionKey(type, coin);
+  if (this.subscriptions.has(subKey)) {
+   console.log(`Already subscribed to: ${type} ${coin || ""}`);
+   return;
   }
 
-  // Convenience methods for common subscriptions
-  async subscribeToAllMids(callback: (data: any) => void) {
-    await this.subscribe({ type: 'allMids' });
-    this.on('allMids', callback);
-  }
+  return new Promise((resolve, reject) => {
+   try {
+    const message = this.formatSubscriptionMessage(type, coin);
+    console.log("Sending subscription:", message); // Debug log
+    this.ws!.send(JSON.stringify(message));
+    this.subscriptions.add(subKey);
+    resolve();
+   } catch (error) {
+    reject(error);
+   }
+  });
+ }
 
-  async subscribeToTrades(coin: string, callback: (data: any) => void) {
-    await this.subscribe({ type: 'trades', coin });
-    this.on('trades', callback);
-  }
+ public async subscribeToTicker(
+  coin: string,
+  callback: (ticker: any) => void
+ ): Promise<void> {
+  this.on(`l2Book`, callback); // Changed to l2Book
+  await this.subscribe("ticker", coin);
+ }
 
-  async subscribeToOrderBook(coin: string, callback: (data: any) => void) {
-    await this.subscribe({ type: 'l2Book', coin });
-    this.on('l2Book', callback);
+ public close(): void {
+  this.cleanup();
+  if (this.ws) {
+   this.ws.close();
+   this.ws = null;
   }
-
-  async subscribeToUserOrders(userAddress: string, callback: (data: any) => void) {
-    await this.subscribe({ type: 'orderUpdates', user: userAddress });
-    this.on('orderUpdates', callback);
-  }
-
-  close() {
-    if (this.ws) {
-      this.ws.close();
-      this.ws = null;
-    }
-    this.subscriptions.clear();
-    this.removeAllListeners();
-  }
+ }
 }

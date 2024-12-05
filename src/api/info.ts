@@ -5,6 +5,7 @@ import {
   SpotMetaResponse,
   SpotAssetContext,
   SpotAccountState,
+  Position,
 } from '../types/hyperliquid';
 import { BaseAPI } from './base';
 

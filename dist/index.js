@@ -1,14 +1,13 @@
-import { HyperliquidInfoAPI } from './api/info';
-import { HyperliquidWebSocketAPI } from './api/websocket';
-
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const info_1 = require("./api/info");
+const websocket_1 = require("./api/websocket");
 async function main() {
-    const wsApi = new HyperliquidWebSocketAPI();
-    const api = new HyperliquidInfoAPI();
-
+    const wsApi = new websocket_1.HyperliquidWebSocketAPI();
+    const api = new info_1.HyperliquidInfoAPI();
     try {
         // Connect to WebSocket
         await wsApi.connect();
-
         // Subscribe to BTC trades
         // await wsApi.subscribeToTrades('BTC', (trade) => {
         //     console.log(`[${new Date().toISOString()}] BTC Trade:`, {
@@ -18,28 +17,23 @@ async function main() {
         //         timestamp: trade.time
         //     });
         // });
-
         // Subscribe to BTC order book
         // await wsApi.subscribeToL2Book('BTC', (book) => {
         //     console.log('Order Book Update:', book);
         // });
-
         // Subscribe to BTC ticker
         await wsApi.subscribeToTicker('BTC', (ticker) => {
             console.log('Ticker Update:', ticker);
         });
-
         // If you have user authentication set up
         // await wsApi.subscribeToUserEvents((event) => {
         //     console.log('User Event:', event);
         // });
-
         // Rest of your code for fetching account information...
-
-    } catch (error) {
+    }
+    catch (error) {
         console.error('Error:', error);
     }
-
     // Handle graceful shutdown
     process.on('SIGINT', () => {
         console.log('\nClosing connections...');
@@ -47,5 +41,4 @@ async function main() {
         process.exit(0);
     });
 }
-
 main().catch(console.error);

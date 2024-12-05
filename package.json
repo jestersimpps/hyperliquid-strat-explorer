@@ -1,26 +1,28 @@
 {
-  "name": "node-project",
-  "version": "1.0.0",
-  "description": "A basic Node.js project",
-  "main": "dist/index.js",
-  "scripts": {
-    "build": "tsc",
-    "start": "npm run build && node dist/index.js",
-    "dev": "ts-node src/index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "axios": "^1.6.2",
-    "ethers": "^6.9.0",
-    "ws": "^8.15.0"
-  },
-  "devDependencies": {
-    "@types/node": "^20.10.5",
-    "@types/ws": "^8.5.10",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.3.3"
-  }
+ "name": "node-project",
+ "version": "1.0.0",
+ "description": "A basic Node.js project",
+ "main": "dist/index.js",
+ "scripts": {
+  "build": "tsc",
+  "start": "npm run build && node dist/index.js",
+  "dev": "ts-node src/index.ts",
+  "test": "echo \"Error: no test specified\" && exit 1"
+ },
+ "keywords": [],
+ "author": "",
+ "license": "ISC",
+ "dependencies": {
+  "@types/dotenv": "^6.1.1",
+  "axios": "^1.6.2",
+  "dotenv": "^16.4.7",
+  "ethers": "^6.9.0",
+  "ws": "^8.18.0"
+ },
+ "devDependencies": {
+  "@types/node": "^20.17.9",
+  "@types/ws": "^8.5.13",
+  "ts-node": "^10.9.2",
+  "typescript": "^5.3.3"
+ }
 }
