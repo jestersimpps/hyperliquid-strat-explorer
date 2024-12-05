@@ -83,6 +83,64 @@ export interface SpotAccountState {
   balances: SpotBalance[];
 }
 
+export type OrderType = {
+  limit: {
+    tif: 'Alo' | 'Ioc' | 'Gtc'
+  }
+} | {
+  trigger: {
+    isMarket: boolean,
+    triggerPx: string,
+    tpsl: 'tp' | 'sl'
+  }
+}
+
+export interface OrderRequest {
+  a: number // asset
+  b: boolean // isBuy
+  p: string // price
+  s: string // size
+  r: boolean // reduceOnly
+  t: OrderType
+  c?: string // cloid (optional)
+}
+
+export interface OrderResponse {
+  status: 'ok'
+  response: {
+    type: 'order'
+    data: {
+      statuses: Array<{
+        resting?: { oid: number }
+        error?: string
+        filled?: {
+          totalSz: string
+          avgPx: string
+          oid: number
+        }
+      }>
+    }
+  }
+}
+
+export interface CancelRequest {
+  type: 'cancel'
+  cancels: Array<{
+    a: number // asset
+    o: number // oid
+  }>
+}
+
+export interface CancelResponse {
+  status: 'ok'
+  response: {
+    type: 'cancel'
+    data: {
+      statuses: Array<'success' | { error: string }>
+    }
+  }
+}
+
 export interface AccountState {
   assetPositions: {
     position: Position;

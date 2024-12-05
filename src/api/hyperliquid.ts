@@ -90,4 +90,22 @@ export class HyperliquidAPI {
       user: userAddress.toLowerCase()
     });
   }
+
+  async placeOrder(order: OrderRequest): Promise<OrderResponse> {
+    return this.post({
+      type: 'order',
+      orders: [order],
+      grouping: 'na'
+    });
+  }
+
+  async cancelOrders(cancels: Array<{asset: number, oid: number}>): Promise<CancelResponse> {
+    return this.post({
+      type: 'cancel',
+      cancels: cancels.map(({asset, oid}) => ({
+        a: asset,
+        o: oid
+      }))
+    });
+  }
 }
