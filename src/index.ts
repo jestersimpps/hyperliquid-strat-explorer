@@ -5,7 +5,7 @@ import { WsTrade } from './types/websocket';
 async function main() {
     // Set up WebSocket connection for BTC trades
     const wsApi = new HyperliquidWebSocketAPI();
-    wsApi.subscribeToTrades('BTC', (trade: WsTrade) => {
+    await wsApi.subscribeToTrades('BTC', (trade: WsTrade) => {
         console.log(`[${new Date(trade.time).toISOString()}] BTC Trade:`, {
             price: `$${trade.px}`,
             size: trade.sz,

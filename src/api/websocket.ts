@@ -16,16 +16,25 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
     this.connect();
   }
 
-  private connect() {
-    if (this.ws?.readyState === WebSocket.OPEN) return;
+  private connect(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (this.ws?.readyState === WebSocket.OPEN) {
+        resolve();
+        return;
+      }
 
-    this.ws = new WebSocket(WS_URL);
+      this.ws = new WebSocket(WS_URL);
 
-    this.ws.on('open', () => {
-      console.log('WebSocket connected');
-      this.reconnectAttempts = 0;
-      this.resubscribe();
-    });
+      this.ws.on('open', () => {
+        console.log('WebSocket connected');
+        this.reconnectAttempts = 0;
+        this.resubscribe();
+        resolve();
+      });
+
+      this.ws.on('error', (error) => {
+        reject(error);
+      });
 
     this.ws.on('message', (data: WebSocket.Data) => {
       try {
@@ -68,21 +77,22 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
     }
   }
 
-  private sendMessage(message: WsSubscription) {
+  private async sendMessage(message: WsSubscription) {
+    await this.connect();
     if (this.ws?.readyState !== WebSocket.OPEN) {
       throw new Error('WebSocket is not connected');
     }
     this.ws.send(JSON.stringify(message));
   }
 
-  subscribe(subscription: Omit<WsSubscription['subscription'], 'method'>) {
+  async subscribe(subscription: Omit<WsSubscription['subscription'], 'method'>) {
     const message: WsSubscription = {
       method: 'subscribe',
       subscription
     };
     
     this.subscriptions.add(JSON.stringify(message));
-    this.sendMessage(message);
+    await this.sendMessage(message);
   }
 
   unsubscribe(subscription: Omit<WsSubscription['subscription'], 'method'>) {
@@ -96,23 +106,23 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
   }
 
   // Convenience methods for common subscriptions
-  subscribeToAllMids(callback: (data: any) => void) {
-    this.subscribe({ type: 'allMids' });
+  async subscribeToAllMids(callback: (data: any) => void) {
+    await this.subscribe({ type: 'allMids' });
     this.on('allMids', callback);
   }
 
-  subscribeToTrades(coin: string, callback: (data: any) => void) {
-    this.subscribe({ type: 'trades', coin });
+  async subscribeToTrades(coin: string, callback: (data: any) => void) {
+    await this.subscribe({ type: 'trades', coin });
     this.on('trades', callback);
   }
 
-  subscribeToOrderBook(coin: string, callback: (data: any) => void) {
-    this.subscribe({ type: 'l2Book', coin });
+  async subscribeToOrderBook(coin: string, callback: (data: any) => void) {
+    await this.subscribe({ type: 'l2Book', coin });
     this.on('l2Book', callback);
   }
 
-  subscribeToUserOrders(userAddress: string, callback: (data: any) => void) {
-    this.subscribe({ type: 'orderUpdates', user: userAddress });
+  async subscribeToUserOrders(userAddress: string, callback: (data: any) => void) {
+    await this.subscribe({ type: 'orderUpdates', user: userAddress });
     this.on('orderUpdates', callback);
   }
 
