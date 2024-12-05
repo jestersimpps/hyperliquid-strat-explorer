@@ -25,9 +25,9 @@ async function main() {
         // });
 
         // Subscribe to BTC ticker
-        await wsApi.subscribeToTicker('BTC', (ticker) => {
-            console.log('Ticker Update:', ticker);
-        });
+        // await wsApi.subscribeToTicker('BTC', (ticker) => {
+        //     console.log('Ticker Update:', ticker);
+        // });
 
         // Subscribe to BTC 1-minute candles
         await wsApi.subscribeToCandles('BTC', '1m', (candle) => {
