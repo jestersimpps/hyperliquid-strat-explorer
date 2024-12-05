@@ -5,6 +5,7 @@ export interface WsSubscription {
     user?: string;
     coin?: string;
     interval?: string;
+    name?: string;
   };
 }
 
