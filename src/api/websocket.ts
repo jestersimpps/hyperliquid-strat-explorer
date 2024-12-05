@@ -155,10 +155,14 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
       this.emit('orders', message.data as WsOrder);
       break;
     case 'candle':
-      const candles = message.data as Candle[];
-      candles.forEach(candle => {
-        this.emit('candles', candle);
-      });
+      if (Array.isArray(message.data)) {
+        const candles = message.data as Candle[];
+        candles.forEach(candle => {
+          this.emit('candles', candle);
+        });
+      } else {
+        this.emit('candles', message.data as Candle);
+      }
       break;
     default:
       console.warn('Unknown message channel:', message.channel);
