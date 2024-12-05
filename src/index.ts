@@ -42,7 +42,7 @@ async function main() {
         if (spotState.balances.length === 0) {
             console.log('No spot balances');
         } else {
-            spotState.balances.forEach(balance => {
+            spotState.balances.forEach((balance) => {
                 console.log(`\nToken: ${balance.coin}`);
                 console.log(`Total Balance: ${balance.total}`);
                 console.log(`Hold: ${balance.hold}`);
