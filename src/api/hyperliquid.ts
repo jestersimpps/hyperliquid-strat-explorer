@@ -11,10 +11,13 @@ import {
   OrderResponse
 } from '../types/hyperliquid';
 
-const API_URL = 'https://api.hyperliquid.xyz/info';
+import dotenv from 'dotenv';
+dotenv.config();
+
+const API_URL = process.env.API_URL || 'https://api.hyperliquid.xyz/info';
+const EXCHANGE_URL = process.env.EXCHANGE_URL || 'https://api.hyperliquid.xyz/exchange';
 
 export class HyperliquidAPI {
-  private readonly SPOT_API_URL = 'https://api.hyperliquid.xyz/info';
   private async post(body: any): Promise<any> {
     const response = await fetch(API_URL, {
       method: 'POST',

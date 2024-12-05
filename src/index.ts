@@ -2,7 +2,11 @@ import { HyperliquidAPI } from './api/hyperliquid';
 
 async function main() {
     const api = new HyperliquidAPI();
-    const address = '0xF51182207e3687985471E0da21CaCf5FfC552E5d';
+    const address = process.env.WALLET_ADDRESS || '';
+    
+    if (!address) {
+        throw new Error('WALLET_ADDRESS not set in environment variables');
+    }
     
     try {
         console.log('Fetching account information...\n');
