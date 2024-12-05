@@ -1,6 +1,18 @@
 import { HyperliquidInfoAPI } from './api/info';
+import { HyperliquidWebSocketAPI } from './api/websocket';
+import { WsTrade } from './types/websocket';
 
 async function main() {
+    // Set up WebSocket connection for BTC trades
+    const wsApi = new HyperliquidWebSocketAPI();
+    wsApi.subscribeToTrades('BTC', (trade: WsTrade) => {
+        console.log(`[${new Date(trade.time).toISOString()}] BTC Trade:`, {
+            price: `$${trade.px}`,
+            size: trade.sz,
+            side: trade.side,
+            id: trade.tid
+        });
+    });
     const api = new HyperliquidInfoAPI();
     const address = process.env.WALLET_ADDRESS || '';
     
