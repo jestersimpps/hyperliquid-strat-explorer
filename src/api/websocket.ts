@@ -41,7 +41,6 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
     this.ws.on("message", (data: WebSocket.Data) => {
      try {
       const message = JSON.parse(data.toString());
-      console.log("Received message:", message); // Debug log
       this.handleMessage(message);
      } catch (error) {
       console.error("WebSocket message:", data.toString());
