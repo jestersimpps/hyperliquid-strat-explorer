@@ -1,7 +1,7 @@
-import { HyperliquidAPI } from './api/hyperliquid';
+import { HyperliquidInfoAPI } from './api/info';
 
 async function main() {
-    const api = new HyperliquidAPI();
+    const api = new HyperliquidInfoAPI();
     const address = process.env.WALLET_ADDRESS || '';
     
     if (!address) {
