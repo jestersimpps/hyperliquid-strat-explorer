@@ -139,7 +139,7 @@ export type SpotAssetCtx = SharedAssetCtx & {
 export interface WsActiveAssetData {
   user: string;
   coin: string;
-  leverage: Leverage;
+  leverage: string;
   maxTradeSzs: [number, number];
   availableToTrade: [number, number];
 }
