@@ -30,8 +30,18 @@ export class HyperliquidAPI {
   async getAccountState(userAddress: string): Promise<AccountState> {
     return this.post({
       type: 'clearinghouseState',
-      user: userAddress,
+      user: userAddress.toLowerCase(),
     });
+  }
+
+  async getAccountValue(userAddress: string): Promise<string> {
+    const state = await this.getAccountState(userAddress);
+    return state.marginSummary.accountValue;
+  }
+
+  async getOpenPositions(userAddress: string): Promise<Position[]> {
+    const state = await this.getAccountState(userAddress);
+    return state.assetPositions.map(ap => ap.position);
   }
 
   async getFundingHistory(userAddress: string, startTime: number, endTime?: number) {

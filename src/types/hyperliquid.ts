@@ -29,7 +29,7 @@ export interface Position {
   entryPx: string;
   leverage: {
     rawUsd: string;
-    type: string;
+    type: 'cross' | 'isolated';
     value: number;
   };
   liquidationPx: string;
@@ -44,7 +44,7 @@ export interface Position {
 export interface AccountState {
   assetPositions: {
     position: Position;
-    type: string;
+    type: 'oneWay';
   }[];
   crossMaintenanceMarginUsed: string;
   crossMarginSummary: {
