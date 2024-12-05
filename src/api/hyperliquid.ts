@@ -5,7 +5,10 @@ import {
   Position,
   SpotMetaResponse,
   SpotAssetContext,
-  SpotAccountState
+  SpotAccountState,
+  CancelResponse,
+  OrderRequest,
+  OrderResponse
 } from '../types/hyperliquid';
 
 const API_URL = 'https://api.hyperliquid.xyz/info';
