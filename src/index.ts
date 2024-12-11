@@ -3,6 +3,7 @@ import { HyperliquidWebSocketAPI } from './api/websocket';
 import * as blessed from 'blessed';
 import * as contrib from 'blessed-contrib';
 import { detectBullishPatterns, detectBearishPatterns, formatPatternInfo, combinePatternResults } from './utils/chart-patterns';
+import { convertWsCandles } from './utils/candle-converter';
 
 async function main() {
     // Initialize blessed screen
@@ -124,13 +125,7 @@ async function main() {
             );
 
             // Convert candles and detect patterns
-            const convertedCandles = candles.map((c) => ({
-                high: parseFloat(c.h),
-                low: parseFloat(c.l),
-                open: parseFloat(c.o),
-                close: parseFloat(c.c),
-                timestamp: c.t
-            }));
+            const convertedCandles = convertWsCandles(candles);
             const bullishPatterns = detectBullishPatterns(convertedCandles);
             const bearishPatterns = detectBearishPatterns(convertedCandles);
             const patternInfo = combinePatternResults(bullishPatterns, bearishPatterns);
