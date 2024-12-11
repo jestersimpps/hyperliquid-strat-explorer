@@ -76,6 +76,11 @@ async function main() {
             const times = candles.map(c => new Date(c.t).toLocaleTimeString());
             const prices = candles.map(c => parseFloat(c.c));
             
+            // Calculate min and max prices with some padding
+            const minPrice = Math.min(...prices);
+            const maxPrice = Math.max(...prices);
+            const padding = (maxPrice - minPrice) * 0.1; // 10% padding
+
             // Update the line chart
             line.setData([{
                 title: 'BTC/USD',
@@ -85,6 +90,10 @@ async function main() {
                     line: 'yellow'
                 }
             }]);
+            
+            // Set y-axis range
+            line.options.minY = minPrice - padding;
+            line.options.maxY = maxPrice + padding;
 
             // Log latest candle info
             const latest = candles[candles.length - 1];
