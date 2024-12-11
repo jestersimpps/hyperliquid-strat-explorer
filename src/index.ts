@@ -123,9 +123,10 @@ async function main() {
                 `Trades: ${latest.n}`
             );
 
-            // Detect and display patterns
-            const bullishPatterns = detectBullishPatterns(candles);
-            const bearishPatterns = detectBearishPatterns(candles);
+            // Convert candles and detect patterns
+            const convertedCandles = candles.map(convertWsCandle);
+            const bullishPatterns = detectBullishPatterns(convertedCandles);
+            const bearishPatterns = detectBearishPatterns(convertedCandles);
             const patternInfo = combinePatternResults(bullishPatterns, bearishPatterns);
             patternBox.setContent(formatPatternInfo(patternInfo));
 

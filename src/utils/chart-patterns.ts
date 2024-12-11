@@ -14,12 +14,24 @@ import {
   threeblackcrows
 } from "technicalindicators";
 
+import { Candle as WsCandle } from '../types/websocket';
+
 interface Candle {
  high: number;
  low: number;
  open: number;
  close: number;
  timestamp: number;
+}
+
+function convertWsCandle(wsCandle: WsCandle): Candle {
+ return {
+   high: parseFloat(wsCandle.h),
+   low: parseFloat(wsCandle.l),
+   open: parseFloat(wsCandle.o),
+   close: parseFloat(wsCandle.c),
+   timestamp: wsCandle.t
+ };
 }
 
 interface PatternResult {
