@@ -1,5 +1,4 @@
 import {
-  CandleData,
   bullishengulfingpattern,
   morningstar,
   bullishharami,
@@ -107,7 +106,7 @@ export function detectBearishPatterns(candles: WsCandle[]): PatternResult[] {
    close: parseFloat(wsCandle.c),
    timestamp: wsCandle.t
  }));
- const input = convertCandles(candles);
+ const input = convertCandles(typedCandles);
  const results: PatternResult[] = [];
 
  // Bearish patterns
@@ -129,7 +128,7 @@ export function detectBearishPatterns(candles: WsCandle[]): PatternResult[] {
      pattern: name,
      startIndex: Math.max(0, i - 2),
      endIndex: i,
-     confidence: calculatePatternConfidence(candles, i, name),
+     confidence: calculatePatternConfidence(typedCandles, i, name),
     });
    }
   }
