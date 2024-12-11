@@ -44,11 +44,11 @@ export interface Candle {
   T: number; // close millis
   s: string; // coin
   i: string; // interval
-  o: number; // open price
-  c: number; // close price
-  h: number; // high price
-  l: number; // low price
-  v: number; // volume (base unit)
+  o: string; // open price
+  c: string; // close price
+  h: string; // high price
+  l: string; // low price
+  v: string; // volume (base unit)
   n: number; // number of trades
 }
 
