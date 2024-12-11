@@ -2,7 +2,7 @@ import { HyperliquidInfoAPI } from './api/info';
 import { HyperliquidWebSocketAPI } from './api/websocket';
 
 async function main() {
-    const wsApi = new HyperliquidWebSocketAPI();
+    const wsApi = new HyperliquidWebSocketAPI(api);
     const api = new HyperliquidInfoAPI();
 
     try {
@@ -29,30 +29,19 @@ async function main() {
         //     console.log('Ticker Update:', ticker);
         // });
 
-        // Get last hour of BTC 1-minute candles
-        const oneHourAgo = Date.now() - (60 * 60 * 1000);
-        const response = await api.getCandles('BTC', '1m', oneHourAgo);
-        console.log('\nLast hour of BTC 1-minute candles:');
-        response.forEach((candle: any) => {
-            console.log(`[${new Date(candle.t).toISOString()}] BTC Candle:`, {
-                open: candle.o,
-                high: candle.h,
-                low: candle.l,
-                close: candle.c,
-                volume: candle.v,
-                trades: candle.n
-            });
-        });
-
-        // Also subscribe to live candle updates
-        await wsApi.subscribeToCandles('BTC', '1m', (candle) => {
-            console.log(`[${new Date(candle.t).toISOString()}] Live BTC Candle:`, {
-                open: candle.o,
-                high: candle.h,
-                low: candle.l,
-                close: candle.c,
-                volume: candle.v,
-                trades: candle.n
+        // Subscribe to BTC 1-minute candles with 1 hour history
+        const oneHourMs = 60 * 60 * 1000;
+        await wsApi.subscribeToCandles('BTC', '1m', oneHourMs, ({ candles }) => {
+            console.log('\nUpdated BTC 1-minute candles:');
+            candles.forEach(candle => {
+                console.log(`[${new Date(candle.t).toISOString()}] BTC Candle:`, {
+                    open: candle.o,
+                    high: candle.h,
+                    low: candle.l,
+                    close: candle.c,
+                    volume: candle.v,
+                    trades: candle.n
+                });
             });
         });
 

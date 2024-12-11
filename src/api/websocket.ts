@@ -20,9 +20,12 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
  private reconnectDelay = 1000;
  private pingInterval?: NodeJS.Timeout;
  private readonly WS_URL = "wss://api.hyperliquid.xyz/ws";
+ private candleArrays: Map<string, Candle[]> = new Map();
+ private infoApi: HyperliquidInfoAPI;
 
- constructor() {
+ constructor(infoApi: HyperliquidInfoAPI) {
   super();
+  this.infoApi = infoApi;
  }
 
  public async connect(): Promise<void> {
@@ -157,11 +160,9 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
     case 'candle':
       if (Array.isArray(message.data)) {
         const candles = message.data as Candle[];
-        candles.forEach(candle => {
-          this.emit('candles', candle);
-        });
+        candles.forEach(candle => this.updateCandle(candle));
       } else {
-        this.emit('candles', message.data as Candle);
+        this.updateCandle(message.data as Candle);
       }
       break;
     default:
@@ -241,13 +242,52 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
   await this.subscribe('orders');
  }
 
+ private getCandleKey(coin: string, interval: string): string {
+  return `${coin}:${interval}`;
+ }
+
+ private updateCandle(candle: Candle): void {
+  const key = this.getCandleKey(candle.s, candle.i);
+  const candles = this.candleArrays.get(key);
+  
+  if (!candles) return;
+
+  // Find and update or append the candle
+  const index = candles.findIndex(c => c.t === candle.t);
+  if (index !== -1) {
+    candles[index] = candle;
+  } else {
+    candles.push(candle);
+  }
+
+  // Sort by timestamp and emit the full array
+  candles.sort((a, b) => a.t - b.t);
+  this.emit('candles', { coin: candle.s, interval: candle.i, candles });
+ }
+
  public async subscribeToCandles(
   coin: string,
   interval: string,
-  callback: (candle: Candle) => void
+  lookbackMs: number,
+  callback: (update: { coin: string, interval: string, candles: Candle[] }) => void
  ): Promise<void> {
+  const key = this.getCandleKey(coin, interval);
+  
+  // Fetch initial candles
+  const startTime = Date.now() - lookbackMs;
+  const initialCandles = await this.infoApi.getCandles(coin, interval, startTime);
+  
+  // Store and sort the candles
+  this.candleArrays.set(key, initialCandles);
+  
+  // Set up the callback
   this.on('candles', callback);
+  
+  // Subscribe to live updates
   await this.subscribe('candle', coin, interval);
+  
+  // Emit initial candles
+  callback({ coin, interval, candles: initialCandles });
  }
 
  public close(): void {
