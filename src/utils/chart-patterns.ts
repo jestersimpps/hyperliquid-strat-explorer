@@ -6,7 +6,395 @@ interface Candle {
   timestamp: number;
 }
 
-interface TrianglePattern {
+interface DoubleBottomPattern extends BasePattern {
+  type: 'double-bottom';
+  firstBottomIndex: number;
+  secondBottomIndex: number;
+  necklinePrice: number;
+  bottoms: [number, number];
+}
+
+interface DoubleTopPattern extends BasePattern {
+  type: 'double-top';
+  firstPeakIndex: number;
+  secondPeakIndex: number;
+  necklinePrice: number;
+  peaks: [number, number];
+}
+
+interface HeadAndShouldersPattern extends BasePattern {
+  type: 'head-and-shoulders' | 'inverse-head-and-shoulders';
+  leftShoulderIndex: number;
+  headIndex: number;
+  rightShoulderIndex: number;
+  necklinePrice: number;
+  shoulderPrices: [number, number];
+  headPrice: number;
+}
+
+interface FlagPattern extends BasePattern {
+  type: 'bull-flag' | 'bear-flag';
+  poleStartIndex: number;
+  poleEndIndex: number;
+  flagStartIndex: number;
+  flagEndIndex: number;
+  poleHeight: number;
+  flagSlope: number;
+}
+
+export function detectDoubleBottom(
+  candles: Candle[],
+  minPeriod: number = 20,
+  maxPeriod: number = 60,
+  tolerance: number = 0.02
+): DoubleBottomPattern | null {
+  if (candles.length < minPeriod) return null;
+
+  const segment = candles.slice(-maxPeriod);
+  const lows = segment.map(c => c.low);
+  
+  // Find local minima
+  const localMinima = findLocalMinima(lows, 5);
+  
+  if (localMinima.length < 2) return null;
+  
+  // Look for two bottoms with similar prices
+  for (let i = 0; i < localMinima.length - 1; i++) {
+    for (let j = i + 1; j < localMinima.length; j++) {
+      const firstBottom = lows[localMinima[i]];
+      const secondBottom = lows[localMinima[j]];
+      
+      if (Math.abs(firstBottom - secondBottom) / firstBottom <= tolerance) {
+        const between = lows.slice(localMinima[i], localMinima[j]);
+        const neckline = Math.max(...between);
+        
+        if (neckline > firstBottom * 1.02 && 
+            localMinima[j] - localMinima[i] >= 5) {
+          
+          const confidence = calculateDoubleBottomConfidence(
+            firstBottom,
+            secondBottom,
+            neckline,
+            localMinima[j] - localMinima[i]
+          );
+
+          return {
+            type: 'double-bottom',
+            startIndex: localMinima[i],
+            endIndex: localMinima[j],
+            firstBottomIndex: localMinima[i],
+            secondBottomIndex: localMinima[j],
+            necklinePrice: neckline,
+            confidence,
+            bottoms: [firstBottom, secondBottom]
+          };
+        }
+      }
+    }
+  }
+  
+  return null;
+}
+
+export function detectDoubleTop(
+  candles: Candle[],
+  minPeriod: number = 20,
+  maxPeriod: number = 60,
+  tolerance: number = 0.02
+): DoubleTopPattern | null {
+  if (candles.length < minPeriod) return null;
+
+  const segment = candles.slice(-maxPeriod);
+  const highs = segment.map(c => c.high);
+  
+  const localMaxima = findLocalMaxima(highs, 5);
+  
+  if (localMaxima.length < 2) return null;
+  
+  for (let i = 0; i < localMaxima.length - 1; i++) {
+    for (let j = i + 1; j < localMaxima.length; j++) {
+      const firstPeak = highs[localMaxima[i]];
+      const secondPeak = highs[localMaxima[j]];
+      
+      if (Math.abs(firstPeak - secondPeak) / firstPeak <= tolerance) {
+        const between = highs.slice(localMaxima[i], localMaxima[j]);
+        const neckline = Math.min(...between);
+        
+        if (neckline < firstPeak * 0.98 && 
+            localMaxima[j] - localMaxima[i] >= 5) {
+          
+          const confidence = calculateDoubleTopConfidence(
+            firstPeak,
+            secondPeak,
+            neckline,
+            localMaxima[j] - localMaxima[i]
+          );
+
+          return {
+            type: 'double-top',
+            startIndex: localMaxima[i],
+            endIndex: localMaxima[j],
+            firstPeakIndex: localMaxima[i],
+            secondPeakIndex: localMaxima[j],
+            necklinePrice: neckline,
+            confidence,
+            peaks: [firstPeak, secondPeak]
+          };
+        }
+      }
+    }
+  }
+  
+  return null;
+}
+
+export function detectHeadAndShoulders(
+  candles: Candle[],
+  inverse: boolean = false,
+  minPeriod: number = 20,
+  maxPeriod: number = 60,
+  tolerance: number = 0.02
+): HeadAndShouldersPattern | null {
+  if (candles.length < minPeriod) return null;
+
+  const segment = candles.slice(-maxPeriod);
+  const prices = inverse ? segment.map(c => c.low) : segment.map(c => c.high);
+  
+  const extrema = inverse ? findLocalMinima(prices, 5) : findLocalMaxima(prices, 5);
+  
+  if (extrema.length < 3) return null;
+  
+  for (let i = 0; i < extrema.length - 2; i++) {
+    const leftShoulder = prices[extrema[i]];
+    const head = prices[extrema[i + 1]];
+    const rightShoulder = prices[extrema[i + 2]];
+    
+    const shoulderDiff = Math.abs(leftShoulder - rightShoulder);
+    
+    if (shoulderDiff / leftShoulder <= tolerance) {
+      const isValidPattern = inverse
+        ? head < Math.min(leftShoulder, rightShoulder)
+        : head > Math.max(leftShoulder, rightShoulder);
+      
+      if (isValidPattern) {
+        const neckline = calculateNecklinePrice(
+          segment,
+          extrema[i],
+          extrema[i + 2]
+        );
+        
+        const confidence = calculateHSConfidence(
+          leftShoulder,
+          head,
+          rightShoulder,
+          neckline,
+          extrema[i + 2] - extrema[i]
+        );
+
+        return {
+          type: inverse ? 'inverse-head-and-shoulders' : 'head-and-shoulders',
+          startIndex: extrema[i],
+          endIndex: extrema[i + 2],
+          leftShoulderIndex: extrema[i],
+          headIndex: extrema[i + 1],
+          rightShoulderIndex: extrema[i + 2],
+          necklinePrice: neckline,
+          shoulderPrices: [leftShoulder, rightShoulder],
+          headPrice: head,
+          confidence
+        };
+      }
+    }
+  }
+  
+  return null;
+}
+
+export function detectFlag(
+  candles: Candle[],
+  bearish: boolean = false,
+  minPeriod: number = 10,
+  maxPeriod: number = 30
+): FlagPattern | null {
+  if (candles.length < minPeriod) return null;
+
+  const segment = candles.slice(-maxPeriod);
+  
+  // Look for strong trend (pole)
+  const poleStart = bearish ? Math.max(...segment.slice(0, 5).map(c => c.high)) 
+                           : Math.min(...segment.slice(0, 5).map(c => c.low));
+  const poleEnd = bearish ? Math.min(...segment.slice(3, 8).map(c => c.low))
+                         : Math.max(...segment.slice(3, 8).map(c => c.high));
+  
+  const poleHeight = Math.abs(poleEnd - poleStart);
+  const minPoleHeight = poleStart * (bearish ? 0.03 : 0.03); // Minimum 3% move
+  
+  if (poleHeight < minPoleHeight) return null;
+  
+  // Look for consolidation (flag)
+  const flagPrices = segment.slice(8, 20).map(c => 
+    bearish ? c.high : c.low
+  );
+  
+  const flagSlope = calculateSlope(flagPrices);
+  const expectedSlope = bearish ? 0.001 : -0.001;
+  
+  if (Math.sign(flagSlope) !== Math.sign(expectedSlope)) return null;
+  
+  const confidence = calculateFlagConfidence(
+    poleHeight / poleStart,
+    flagSlope,
+    flagPrices.length
+  );
+
+  return {
+    type: bearish ? 'bear-flag' : 'bull-flag',
+    startIndex: 0,
+    endIndex: flagPrices.length + 8,
+    poleStartIndex: 0,
+    poleEndIndex: 7,
+    flagStartIndex: 8,
+    flagEndIndex: flagPrices.length + 8,
+    poleHeight,
+    flagSlope,
+    confidence
+  };
+}
+
+function findLocalMinima(data: number[], window: number): number[] {
+  const minima: number[] = [];
+  
+  for (let i = window; i < data.length - window; i++) {
+    const current = data[i];
+    const leftWindow = data.slice(i - window, i);
+    const rightWindow = data.slice(i + 1, i + window + 1);
+    
+    if (current <= Math.min(...leftWindow) && 
+        current <= Math.min(...rightWindow)) {
+      minima.push(i);
+    }
+  }
+  
+  return minima;
+}
+
+function findLocalMaxima(data: number[], window: number): number[] {
+  const maxima: number[] = [];
+  
+  for (let i = window; i < data.length - window; i++) {
+    const current = data[i];
+    const leftWindow = data.slice(i - window, i);
+    const rightWindow = data.slice(i + 1, i + window + 1);
+    
+    if (current >= Math.max(...leftWindow) && 
+        current >= Math.max(...rightWindow)) {
+      maxima.push(i);
+    }
+  }
+  
+  return maxima;
+}
+
+function calculateNecklinePrice(
+  candles: Candle[],
+  leftIndex: number,
+  rightIndex: number
+): number {
+  const leftPrice = candles[leftIndex].low;
+  const rightPrice = candles[rightIndex].low;
+  return (leftPrice + rightPrice) / 2;
+}
+
+function calculateSlope(prices: number[]): number {
+  const xMean = (prices.length - 1) / 2;
+  const yMean = average(prices);
+  
+  let numerator = 0;
+  let denominator = 0;
+  
+  prices.forEach((y, x) => {
+    numerator += (x - xMean) * (y - yMean);
+    denominator += Math.pow(x - xMean, 2);
+  });
+  
+  return numerator / denominator;
+}
+
+function calculateDoubleBottomConfidence(
+  firstBottom: number,
+  secondBottom: number,
+  neckline: number,
+  spacing: number
+): number {
+  const bottomSimilarity = 1 - Math.abs(firstBottom - secondBottom) / firstBottom;
+  const height = (neckline - Math.min(firstBottom, secondBottom)) / neckline;
+  const spacingScore = Math.min(spacing / 20, 1);
+  
+  return (
+    bottomSimilarity * 0.4 +
+    height * 0.3 +
+    spacingScore * 0.3
+  );
+}
+
+function calculateDoubleTopConfidence(
+  firstPeak: number,
+  secondPeak: number,
+  neckline: number,
+  spacing: number
+): number {
+  const peakSimilarity = 1 - Math.abs(firstPeak - secondPeak) / firstPeak;
+  const height = (Math.max(firstPeak, secondPeak) - neckline) / firstPeak;
+  const spacingScore = Math.min(spacing / 20, 1);
+  
+  return (
+    peakSimilarity * 0.4 +
+    height * 0.3 +
+    spacingScore * 0.3
+  );
+}
+
+function calculateHSConfidence(
+  leftShoulder: number,
+  head: number,
+  rightShoulder: number,
+  neckline: number,
+  spacing: number
+): number {
+  const shoulderSimilarity = 1 - Math.abs(leftShoulder - rightShoulder) / leftShoulder;
+  const headHeight = Math.abs(head - (leftShoulder + rightShoulder) / 2) / head;
+  const spacingScore = Math.min(spacing / 30, 1);
+  
+  return (
+    shoulderSimilarity * 0.4 +
+    headHeight * 0.4 +
+    spacingScore * 0.2
+  );
+}
+
+function calculateFlagConfidence(
+  poleHeightRatio: number,
+  flagSlope: number,
+  flagLength: number
+): number {
+  const heightScore = Math.min(poleHeightRatio * 10, 1);
+  const slopeScore = Math.min(Math.abs(flagSlope) * 100, 1);
+  const lengthScore = Math.min(flagLength / 15, 1);
+  
+  return (
+    heightScore * 0.4 +
+    slopeScore * 0.4 +
+    lengthScore * 0.2
+  );
+}
+
+interface BasePattern {
+  startIndex: number;
+  endIndex: number;
+  confidence: number;
+}
+
+interface TrianglePattern extends BasePattern {
   type: 'ascending' | 'descending';
   startIndex: number;
   endIndex: number;
