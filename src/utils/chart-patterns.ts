@@ -637,6 +637,53 @@ function average(numbers: number[]): number {
  return numbers.reduce((sum, num) => sum + num, 0) / numbers.length;
 }
 
+export interface PatternInfo {
+  bullish: {
+    pattern: string;
+    confidence: number;
+  }[];
+  bearish: {
+    pattern: string;
+    confidence: number;
+  }[];
+}
+
+export function formatPatternInfo(info: PatternInfo): string {
+  let content = '';
+  
+  if (info.bullish.length > 0) {
+    content += 'Bullish Patterns:\n';
+    info.bullish.forEach(p => {
+      content += `  ${p.pattern} (${(p.confidence * 100).toFixed(1)}%)\n`;
+    });
+  }
+  
+  if (info.bearish.length > 0) {
+    content += '\nBearish Patterns:\n';
+    info.bearish.forEach(p => {
+      content += `  ${p.pattern} (${(p.confidence * 100).toFixed(1)}%)\n`;
+    });
+  }
+  
+  return content || 'No patterns detected';
+}
+
+export function combinePatternResults(
+  bullishPatterns: PatternResult[],
+  bearishPatterns: PatternResult[]
+): PatternInfo {
+  return {
+    bullish: bullishPatterns.map(p => ({
+      pattern: p.pattern,
+      confidence: p.confidence
+    })),
+    bearish: bearishPatterns.map(p => ({
+      pattern: p.pattern,
+      confidence: p.confidence
+    }))
+  };
+}
+
 function calculateConfidence(
  touchPointRatio: number,
  slopeStrength: number,
