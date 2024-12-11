@@ -57,8 +57,9 @@ function convertCandles(candles: Candle[]): { open: number[]; high: number[]; lo
 /**
  * Detect all bullish patterns in the given candle data
  */
-export function detectBullishPatterns(candles: Candle[]): PatternResult[] {
- const input = convertCandles(candles);
+export function detectBullishPatterns(candles: Candle[] | unknown[]): PatternResult[] {
+ const typedCandles = candles as Candle[];
+ const input = convertCandles(typedCandles);
  const results: PatternResult[] = [];
 
  // Bullish patterns
@@ -80,7 +81,7 @@ export function detectBullishPatterns(candles: Candle[]): PatternResult[] {
      pattern: name,
      startIndex: Math.max(0, i - 2), // Most patterns use 2-3 candles
      endIndex: i,
-     confidence: calculatePatternConfidence(candles, i, name),
+     confidence: calculatePatternConfidence(typedCandles, i, name),
     });
    }
   }
@@ -92,7 +93,8 @@ export function detectBullishPatterns(candles: Candle[]): PatternResult[] {
 /**
  * Detect all bearish patterns in the given candle data
  */
-export function detectBearishPatterns(candles: Candle[]): PatternResult[] {
+export function detectBearishPatterns(candles: Candle[] | unknown[]): PatternResult[] {
+ const typedCandles = candles as Candle[];
  const input = convertCandles(candles);
  const results: PatternResult[] = [];
 
