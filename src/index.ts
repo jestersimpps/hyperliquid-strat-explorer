@@ -90,11 +90,11 @@ async function main() {
             const latest = candles[candles.length - 1];
             log.log(
                 `Time: ${new Date(latest.t).toISOString()} | ` +
-                `O: ${latest.o.toFixed(2)} | ` +
-                `H: ${latest.h.toFixed(2)} | ` +
-                `L: ${latest.l.toFixed(2)} | ` +
-                `C: ${latest.c.toFixed(2)} | ` +
-                `V: ${latest.v.toFixed(2)} | ` +
+                `O: ${parseFloat(latest.o).toFixed(2)} | ` +
+                `H: ${parseFloat(latest.h).toFixed(2)} | ` +
+                `L: ${parseFloat(latest.l).toFixed(2)} | ` +
+                `C: ${parseFloat(latest.c).toFixed(2)} | ` +
+                `V: ${parseFloat(latest.v).toFixed(2)} | ` +
                 `Trades: ${latest.n}`
             );
 
