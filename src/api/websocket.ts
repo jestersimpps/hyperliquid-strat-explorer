@@ -160,6 +160,10 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
   this.emit('candles', { coin, interval, candles: newCandles });
  }
 
+ private shouldRefreshCandles(candle: Candle): boolean {
+  return candle.n === 1; // Trades reset to 1 indicates a new candle
+ }
+
  private handleMessage(message: WsMessage): void {
   if (!message.channel || !message.data) {
     console.warn('Received malformed message:', message);
