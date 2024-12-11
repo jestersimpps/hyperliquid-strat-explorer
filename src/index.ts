@@ -29,9 +29,24 @@ async function main() {
         //     console.log('Ticker Update:', ticker);
         // });
 
-        // Subscribe to BTC 1-minute candles
-        await wsApi.subscribeToCandles('BTC', '1m', (candle) => {
+        // Get last hour of BTC 1-minute candles
+        const oneHourAgo = Date.now() - (60 * 60 * 1000);
+        const candles = await api.getCandles('BTC', '1m', oneHourAgo);
+        console.log('\nLast hour of BTC 1-minute candles:');
+        candles.forEach((candle: any) => {
             console.log(`[${new Date(candle.t).toISOString()}] BTC Candle:`, {
+                open: candle.o,
+                high: candle.h,
+                low: candle.l,
+                close: candle.c,
+                volume: candle.v,
+                trades: candle.n
+            });
+        });
+
+        // Also subscribe to live candle updates
+        await wsApi.subscribeToCandles('BTC', '1m', (candle) => {
+            console.log(`[${new Date(candle.t).toISOString()}] Live BTC Candle:`, {
                 open: candle.o,
                 high: candle.h,
                 low: candle.l,
