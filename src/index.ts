@@ -31,9 +31,9 @@ async function main() {
 
         // Get last hour of BTC 1-minute candles
         const oneHourAgo = Date.now() - (60 * 60 * 1000);
-        const candles = await api.getCandles('BTC', '1m', oneHourAgo);
+        const response = await api.getCandles('BTC', '1m', oneHourAgo);
         console.log('\nLast hour of BTC 1-minute candles:');
-        candles.forEach((candle: any) => {
+        response[0].forEach((candle: any) => {
             console.log(`[${new Date(candle.t).toISOString()}] BTC Candle:`, {
                 open: candle.o,
                 high: candle.h,

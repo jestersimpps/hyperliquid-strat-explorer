@@ -60,11 +60,13 @@ export class HyperliquidInfoAPI extends BaseAPI {
 
   async getCandles(coin: string, interval: string, startTime?: number, endTime?: number) {
     return this.post(API_URL, {
-      type: 'candle',
-      coin,
-      interval,
-      startTime,
-      endTime
+      type: 'candleSnapshot',
+      req: {
+        coin,
+        interval,
+        startTime,
+        endTime
+      }
     });
   }
 
