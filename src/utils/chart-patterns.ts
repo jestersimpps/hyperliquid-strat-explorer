@@ -458,6 +458,34 @@ interface BasePattern {
  confidence: number;
 }
 
+interface DoubleTopPattern extends BasePattern {
+ type: "double-top";
+ firstPeakIndex: number;
+ secondPeakIndex: number;
+ necklinePrice: number;
+ peaks: [number, number];
+}
+
+interface HeadAndShouldersPattern extends BasePattern {
+ type: "head-and-shoulders" | "inverse-head-and-shoulders";
+ leftShoulderIndex: number;
+ headIndex: number;
+ rightShoulderIndex: number;
+ necklinePrice: number;
+ shoulderPrices: [number, number];
+ headPrice: number;
+}
+
+interface FlagPattern extends BasePattern {
+ type: "bull-flag" | "bear-flag";
+ poleStartIndex: number;
+ poleEndIndex: number;
+ flagStartIndex: number;
+ flagEndIndex: number;
+ poleHeight: number;
+ flagSlope: number;
+}
+
 interface TrianglePattern extends BasePattern {
  type: "ascending" | "descending";
  startIndex: number;
