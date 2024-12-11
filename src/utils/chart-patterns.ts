@@ -57,17 +57,14 @@ function convertCandles(candles: Candle[]): { open: number[]; high: number[]; lo
 /**
  * Detect all bullish patterns in the given candle data
  */
-export function detectBullishPatterns(candles: unknown[]): PatternResult[] {
- const typedCandles = candles.map(c => {
-   const wsCandle = c as WsCandle;
-   return {
-     high: parseFloat(wsCandle.h),
-     low: parseFloat(wsCandle.l),
-     open: parseFloat(wsCandle.o),
-     close: parseFloat(wsCandle.c),
-     timestamp: wsCandle.t
-   };
- });
+export function detectBullishPatterns(candles: WsCandle[]): PatternResult[] {
+ const typedCandles = candles.map(wsCandle => ({
+   high: parseFloat(wsCandle.h),
+   low: parseFloat(wsCandle.l),
+   open: parseFloat(wsCandle.o),
+   close: parseFloat(wsCandle.c),
+   timestamp: wsCandle.t
+ }));
  const input = convertCandles(typedCandles);
  const results: PatternResult[] = [];
 
@@ -102,17 +99,14 @@ export function detectBullishPatterns(candles: unknown[]): PatternResult[] {
 /**
  * Detect all bearish patterns in the given candle data
  */
-export function detectBearishPatterns(candles: unknown[]): PatternResult[] {
- const typedCandles = candles.map(c => {
-   const wsCandle = c as WsCandle;
-   return {
-     high: parseFloat(wsCandle.h),
-     low: parseFloat(wsCandle.l),
-     open: parseFloat(wsCandle.o),
-     close: parseFloat(wsCandle.c),
-     timestamp: wsCandle.t
-   };
- });
+export function detectBearishPatterns(candles: WsCandle[]): PatternResult[] {
+ const typedCandles = candles.map(wsCandle => ({
+   high: parseFloat(wsCandle.h),
+   low: parseFloat(wsCandle.l),
+   open: parseFloat(wsCandle.o),
+   close: parseFloat(wsCandle.c),
+   timestamp: wsCandle.t
+ }));
  const input = convertCandles(candles);
  const results: PatternResult[] = [];
 
