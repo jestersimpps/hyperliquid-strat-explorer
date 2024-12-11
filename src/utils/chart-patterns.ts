@@ -1,4 +1,5 @@
 import {
+  CandleData,
   bullishengulfingpattern,
   morningstar,
   bullishharami,
