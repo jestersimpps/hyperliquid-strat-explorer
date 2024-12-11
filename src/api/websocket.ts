@@ -280,6 +280,14 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
   
   if (!candles) return;
 
+  // Check if we need to refresh the candle data
+  if (this.shouldRefreshCandles(candle)) {
+    this.refreshCandleData(candle.s, candle.i, 60 * 60 * 1000).catch(error => {
+      console.error('Error refreshing candle data:', error);
+    });
+    return;
+  }
+
   // Find and update or append the candle
   const index = candles.findIndex(c => c.t === candle.t);
   if (index !== -1) {
@@ -301,12 +309,6 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
  ): Promise<void> {
   const key = this.getCandleKey(coin, interval);
   
-  // Clear any existing refresh timer for this subscription
-  const existingTimer = this.candleRefreshTimers.get(key);
-  if (existingTimer) {
-    clearInterval(existingTimer);
-  }
-  
   // Fetch initial candles
   await this.refreshCandleData(coin, interval, lookbackMs);
   
@@ -315,16 +317,6 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
   
   // Subscribe to live updates
   await this.subscribe('candle', coin, interval);
-  
-  // Set up periodic refresh based on interval
-  const refreshMs = this.parseInterval(interval);
-  const timer = setInterval(() => {
-    this.refreshCandleData(coin, interval, lookbackMs).catch(error => {
-      console.error('Error refreshing candle data:', error);
-    });
-  }, refreshMs);
-  
-  this.candleRefreshTimers.set(key, timer);
  }
 
  public close(): void {
