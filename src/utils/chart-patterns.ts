@@ -1,3 +1,10 @@
+import {
+  pattern,
+  CandleData,
+  PatternDetector,
+  IPattern
+} from 'technicalindicators';
+
 interface Candle {
   high: number;
   low: number;
@@ -6,94 +13,151 @@ interface Candle {
   timestamp: number;
 }
 
-interface DoubleBottomPattern extends BasePattern {
-  type: 'double-bottom';
-  firstBottomIndex: number;
-  secondBottomIndex: number;
-  necklinePrice: number;
-  bottoms: [number, number];
+interface PatternResult {
+  pattern: string;
+  startIndex: number;
+  endIndex: number;
+  confidence: number;
 }
 
-interface DoubleTopPattern extends BasePattern {
-  type: 'double-top';
-  firstPeakIndex: number;
-  secondPeakIndex: number;
-  necklinePrice: number;
-  peaks: [number, number];
+/**
+ * Convert our candle format to technicalindicators format
+ */
+function convertCandles(candles: Candle[]): CandleData {
+  return {
+    open: candles.map(c => c.open),
+    high: candles.map(c => c.high),
+    low: candles.map(c => c.low),
+    close: candles.map(c => c.close),
+    volume: new Array(candles.length).fill(0) // Required by the library but not used for pattern detection
+  };
 }
 
-interface HeadAndShouldersPattern extends BasePattern {
-  type: 'head-and-shoulders' | 'inverse-head-and-shoulders';
-  leftShoulderIndex: number;
-  headIndex: number;
-  rightShoulderIndex: number;
-  necklinePrice: number;
-  shoulderPrices: [number, number];
-  headPrice: number;
-}
+/**
+ * Detect all bullish patterns in the given candle data
+ */
+export function detectBullishPatterns(candles: Candle[]): PatternResult[] {
+  const input = convertCandles(candles);
+  const results: PatternResult[] = [];
 
-interface FlagPattern extends BasePattern {
-  type: 'bull-flag' | 'bear-flag';
-  poleStartIndex: number;
-  poleEndIndex: number;
-  flagStartIndex: number;
-  flagEndIndex: number;
-  poleHeight: number;
-  flagSlope: number;
-}
+  // Bullish patterns
+  const bullishPatterns = [
+    { name: 'BullishEngulfingPattern', detector: pattern.bullish.engulfing },
+    { name: 'MorningStarPattern', detector: pattern.bullish.morningstar },
+    { name: 'BullishHarami', detector: pattern.bullish.harami },
+    { name: 'PiercingLine', detector: pattern.bullish.piercingline },
+    { name: 'BullishMarubozu', detector: pattern.bullish.marubozu },
+    { name: 'ThreeWhiteSoldiers', detector: pattern.bullish.threewhitesoldiers }
+  ];
 
-export function detectDoubleBottom(
-  candles: Candle[],
-  minPeriod: number = 20,
-  maxPeriod: number = 60,
-  tolerance: number = 0.02
-): DoubleBottomPattern | null {
-  if (candles.length < minPeriod) return null;
-
-  const segment = candles.slice(-maxPeriod);
-  const lows = segment.map(c => c.low);
-  
-  // Find local minima
-  const localMinima = findLocalMinima(lows, 5);
-  
-  if (localMinima.length < 2) return null;
-  
-  // Look for two bottoms with similar prices
-  for (let i = 0; i < localMinima.length - 1; i++) {
-    for (let j = i + 1; j < localMinima.length; j++) {
-      const firstBottom = lows[localMinima[i]];
-      const secondBottom = lows[localMinima[j]];
-      
-      if (Math.abs(firstBottom - secondBottom) / firstBottom <= tolerance) {
-        const between = lows.slice(localMinima[i], localMinima[j]);
-        const neckline = Math.max(...between);
-        
-        if (neckline > firstBottom * 1.02 && 
-            localMinima[j] - localMinima[i] >= 5) {
-          
-          const confidence = calculateDoubleBottomConfidence(
-            firstBottom,
-            secondBottom,
-            neckline,
-            localMinima[j] - localMinima[i]
-          );
-
-          return {
-            type: 'double-bottom',
-            startIndex: localMinima[i],
-            endIndex: localMinima[j],
-            firstBottomIndex: localMinima[i],
-            secondBottomIndex: localMinima[j],
-            necklinePrice: neckline,
-            confidence,
-            bottoms: [firstBottom, secondBottom]
-          };
-        }
+  for (const { name, detector } of bullishPatterns) {
+    const detected = detector(input);
+    
+    for (let i = 0; i < detected.length; i++) {
+      if (detected[i]) {
+        results.push({
+          pattern: name,
+          startIndex: Math.max(0, i - 2), // Most patterns use 2-3 candles
+          endIndex: i,
+          confidence: calculatePatternConfidence(candles, i, name)
+        });
       }
     }
   }
+
+  return results;
+}
+
+/**
+ * Detect all bearish patterns in the given candle data
+ */
+export function detectBearishPatterns(candles: Candle[]): PatternResult[] {
+  const input = convertCandles(candles);
+  const results: PatternResult[] = [];
+
+  // Bearish patterns
+  const bearishPatterns = [
+    { name: 'BearishEngulfingPattern', detector: pattern.bearish.engulfing },
+    { name: 'EveningStarPattern', detector: pattern.bearish.eveningstar },
+    { name: 'BearishHarami', detector: pattern.bearish.harami },
+    { name: 'DarkCloudCover', detector: pattern.bearish.darkcloud },
+    { name: 'BearishMarubozu', detector: pattern.bearish.marubozu },
+    { name: 'ThreeBlackCrows', detector: pattern.bearish.threeblackcrows }
+  ];
+
+  for (const { name, detector } of bearishPatterns) {
+    const detected = detector(input);
+    
+    for (let i = 0; i < detected.length; i++) {
+      if (detected[i]) {
+        results.push({
+          pattern: name,
+          startIndex: Math.max(0, i - 2),
+          endIndex: i,
+          confidence: calculatePatternConfidence(candles, i, name)
+        });
+      }
+    }
+  }
+
+  return results;
+}
+
+/**
+ * Calculate confidence score for detected pattern
+ */
+function calculatePatternConfidence(
+  candles: Candle[],
+  index: number,
+  patternName: string
+): number {
+  // Base confidence starts at 0.7 for a detected pattern
+  let confidence = 0.7;
+
+  // Adjust confidence based on pattern characteristics
+  const currentCandle = candles[index];
+  const prevCandle = candles[index - 1];
   
-  return null;
+  if (!prevCandle) return confidence;
+
+  // Factors that increase confidence:
+  
+  // 1. Size of the candles
+  const candleSize = Math.abs(currentCandle.close - currentCandle.open) /
+                    currentCandle.open;
+  confidence += Math.min(candleSize * 10, 0.1); // Max 0.1 boost
+
+  // 2. Volume confirmation (if available)
+  // Note: We don't have volume in our Candle interface currently
+
+  // 3. Clear reversal from previous trend
+  const priceChange = (currentCandle.close - prevCandle.close) / prevCandle.close;
+  confidence += Math.min(Math.abs(priceChange) * 5, 0.1);
+
+  // 4. Pattern specific adjustments
+  switch (patternName) {
+    case 'BullishEngulfingPattern':
+    case 'BearishEngulfingPattern':
+      // Larger engulfing patterns are more significant
+      const engulfingSize = Math.abs(
+        currentCandle.high - currentCandle.low
+      ) / Math.abs(
+        prevCandle.high - prevCandle.low
+      );
+      confidence += Math.min((engulfingSize - 1) * 0.1, 0.1);
+      break;
+      
+    case 'MorningStarPattern':
+    case 'EveningStarPattern':
+      // Stronger if middle candle is smaller (doji-like)
+      const middleSize = Math.abs(
+        candles[index - 1].close - candles[index - 1].open
+      ) / candles[index - 1].open;
+      confidence += Math.min((0.01 / middleSize) * 0.1, 0.1);
+      break;
+  }
+
+  return Math.min(confidence, 1); // Cap at 1.0
 }
 
 export function detectDoubleTop(
