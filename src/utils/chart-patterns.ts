@@ -32,7 +32,7 @@ interface PatternResult {
 /**
  * Convert our candle format to technicalindicators format
  */
-function convertCandles(candles: Candle[]): CandleData {
+function convertCandles(candles: Candle[]): { open: number[]; high: number[]; low: number[]; close: number[]; volume: number[] } {
  return {
   open: candles.map((c) => c.open),
   high: candles.map((c) => c.high),
