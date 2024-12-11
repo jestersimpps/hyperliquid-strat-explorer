@@ -1,4 +1,18 @@
-import { pattern, CandleData } from "technicalindicators";
+import {
+  CandleData,
+  bullishengulfingpattern,
+  morningstar,
+  bullishharami,
+  piercingline,
+  bullishmarubozu,
+  threewhitesoldiers,
+  bearishengulfingpattern,
+  eveningstar,
+  bearishharami,
+  darkcloudcover,
+  bearishmarubozu,
+  threeblackcrows
+} from "technicalindicators";
 
 interface Candle {
  high: number;
@@ -37,12 +51,12 @@ export function detectBullishPatterns(candles: Candle[]): PatternResult[] {
 
  // Bullish patterns
  const bullishPatterns = [
-  { name: "BullishEngulfingPattern", detector: pattern.bullish.engulfing },
-  { name: "MorningStarPattern", detector: pattern.bullish.morningstar },
-  { name: "BullishHarami", detector: pattern.bullish.harami },
-  { name: "PiercingLine", detector: pattern.bullish.piercingline },
-  { name: "BullishMarubozu", detector: pattern.bullish.marubozu },
-  { name: "ThreeWhiteSoldiers", detector: pattern.bullish.threewhitesoldiers },
+  { name: "BullishEngulfingPattern", detector: bullishengulfingpattern },
+  { name: "MorningStarPattern", detector: morningstar },
+  { name: "BullishHarami", detector: bullishharami },
+  { name: "PiercingLine", detector: piercingline },
+  { name: "BullishMarubozu", detector: bullishmarubozu },
+  { name: "ThreeWhiteSoldiers", detector: threewhitesoldiers },
  ];
 
  for (const { name, detector } of bullishPatterns) {
@@ -72,12 +86,12 @@ export function detectBearishPatterns(candles: Candle[]): PatternResult[] {
 
  // Bearish patterns
  const bearishPatterns = [
-  { name: "BearishEngulfingPattern", detector: pattern.bearish.engulfing },
-  { name: "EveningStarPattern", detector: pattern.bearish.eveningstar },
-  { name: "BearishHarami", detector: pattern.bearish.harami },
-  { name: "DarkCloudCover", detector: pattern.bearish.darkcloud },
-  { name: "BearishMarubozu", detector: pattern.bearish.marubozu },
-  { name: "ThreeBlackCrows", detector: pattern.bearish.threeblackcrows },
+  { name: "BearishEngulfingPattern", detector: bearishengulfingpattern },
+  { name: "EveningStarPattern", detector: eveningstar },
+  { name: "BearishHarami", detector: bearishharami },
+  { name: "DarkCloudCover", detector: darkcloudcover },
+  { name: "BearishMarubozu", detector: bearishmarubozu },
+  { name: "ThreeBlackCrows", detector: threeblackcrows },
  ];
 
  for (const { name, detector } of bearishPatterns) {
