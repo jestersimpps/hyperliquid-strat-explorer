@@ -74,7 +74,7 @@ async function main() {
         await wsApi.subscribeToCandles('BTC', '1m', oneHourMs, ({ candles }) => {
             // Prepare data for the chart
             const times = candles.map(c => new Date(c.t).toLocaleTimeString());
-            const prices = candles.map(c => c.c);
+            const prices = candles.map(c => parseFloat(c.c));
             
             // Update the line chart
             line.setData([{
