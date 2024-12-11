@@ -123,6 +123,12 @@ async function main() {
                 `Trades: ${latest.n}`
             );
 
+            // Detect and display patterns
+            const bullishPatterns = detectBullishPatterns(candles);
+            const bearishPatterns = detectBearishPatterns(candles);
+            const patternInfo = combinePatternResults(bullishPatterns, bearishPatterns);
+            patternBox.setContent(formatPatternInfo(patternInfo));
+
             // Render the screen
             screen.render();
         });
