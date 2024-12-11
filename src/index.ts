@@ -124,7 +124,13 @@ async function main() {
             );
 
             // Convert candles and detect patterns
-            const convertedCandles = candles.map(convertWsCandle);
+            const convertedCandles = candles.map((c) => ({
+                high: parseFloat(c.h),
+                low: parseFloat(c.l),
+                open: parseFloat(c.o),
+                close: parseFloat(c.c),
+                timestamp: c.t
+            }));
             const bullishPatterns = detectBullishPatterns(convertedCandles);
             const bearishPatterns = detectBearishPatterns(convertedCandles);
             const patternInfo = combinePatternResults(bullishPatterns, bearishPatterns);

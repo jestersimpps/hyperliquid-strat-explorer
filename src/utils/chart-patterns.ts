@@ -24,7 +24,7 @@ interface Candle {
  timestamp: number;
 }
 
-function convertWsCandle(wsCandle: WsCandle): Candle {
+export function convertWsCandle(wsCandle: WsCandle): Candle {
  return {
    high: parseFloat(wsCandle.h),
    low: parseFloat(wsCandle.l),
