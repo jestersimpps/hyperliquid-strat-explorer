@@ -2,6 +2,7 @@ import { HyperliquidInfoAPI } from './api/info';
 import { HyperliquidWebSocketAPI } from './api/websocket';
 import * as blessed from 'blessed';
 import * as contrib from 'blessed-contrib';
+import { detectBullishPatterns, detectBearishPatterns, formatPatternInfo, combinePatternResults } from './utils/chart-patterns';
 
 async function main() {
     // Initialize blessed screen
@@ -32,10 +33,25 @@ async function main() {
     });
 
     // Add log box for latest candle info
-    const log = grid.set(8, 0, 4, 12, contrib.log, {
+    const log = grid.set(8, 0, 4, 6, contrib.log, {
         fg: "green",
         selectedFg: "green",
         label: 'Latest Candle Info'
+    });
+
+    // Add pattern info box
+    const patternBox = grid.set(8, 6, 4, 6, blessed.box, {
+        label: 'Pattern Analysis',
+        padding: 1,
+        border: {
+            type: 'line'
+        },
+        style: {
+            fg: 'yellow',
+            border: {
+                fg: 'green'
+            }
+        }
     });
 
     // Handle exit
