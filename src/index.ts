@@ -2,8 +2,8 @@ import { HyperliquidInfoAPI } from './api/info';
 import { HyperliquidWebSocketAPI } from './api/websocket';
 
 async function main() {
-    const wsApi = new HyperliquidWebSocketAPI(api);
     const api = new HyperliquidInfoAPI();
+    const wsApi = new HyperliquidWebSocketAPI(api);
 
     try {
         // Connect to WebSocket

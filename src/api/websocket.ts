@@ -1,5 +1,6 @@
 import WebSocket from "ws";
 import { EventEmitter } from "events";
+import { HyperliquidInfoAPI } from "./info";
 import { 
   WsMessage, 
   WsSubscription, 
