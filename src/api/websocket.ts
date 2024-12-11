@@ -10,7 +10,7 @@ import {
   WsUserFunding,
   WsLiquidation,
   WsOrder,
-  Candle
+  WsCandle
 } from "../types/websocket";
 
 export class HyperliquidWebSocketAPI extends EventEmitter {
@@ -21,7 +21,7 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
  private reconnectDelay = 1000;
  private pingInterval?: NodeJS.Timeout;
  private readonly WS_URL = "wss://api.hyperliquid.xyz/ws";
- private candleArrays: Map<string, Candle[]> = new Map();
+ private candleArrays: Map<string, WsCandle[]> = new Map();
  private candleRefreshTimers: Map<string, NodeJS.Timeout> = new Map();
  private infoApi: HyperliquidInfoAPI;
 
@@ -139,18 +139,6 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
   this.candleRefreshTimers.clear();
  }
 
- private parseInterval(interval: string): number {
-  const value = parseInt(interval.slice(0, -1));
-  const unit = interval.slice(-1);
-  
-  switch (unit) {
-    case 'm': return value * 60 * 1000; // minutes to ms
-    case 'h': return value * 60 * 60 * 1000; // hours to ms
-    case 'd': return value * 24 * 60 * 60 * 1000; // days to ms
-    default: throw new Error(`Unsupported interval unit: ${unit}`);
-  }
- }
-
  private async refreshCandleData(coin: string, interval: string, lookbackMs: number): Promise<void> {
   const key = this.getCandleKey(coin, interval);
   const startTime = Date.now() - lookbackMs;
@@ -160,7 +148,7 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
   this.emit('candles', { coin, interval, candles: newCandles });
  }
 
- private shouldRefreshCandles(candle: Candle): boolean {
+ private shouldRefreshCandles(candle: WsCandle): boolean {
   return candle.n === 1; // Trades reset to 1 indicates a new candle
  }
 
@@ -191,10 +179,10 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
       break;
     case 'candle':
       if (Array.isArray(message.data)) {
-        const candles = message.data as Candle[];
+        const candles = message.data as WsCandle[];
         candles.forEach(candle => this.updateCandle(candle));
       } else {
-        this.updateCandle(message.data as Candle);
+        this.updateCandle(message.data as WsCandle);
       }
       break;
     default:
@@ -278,7 +266,7 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
   return `${coin}:${interval}`;
  }
 
- private updateCandle(candle: Candle): void {
+ private updateCandle(candle: WsCandle): void {
   const key = this.getCandleKey(candle.s, candle.i);
   const candles = this.candleArrays.get(key);
   
@@ -309,9 +297,8 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
   coin: string,
   interval: string,
   lookbackMs: number,
-  callback: (update: { coin: string, interval: string, candles: Candle[] }) => void
+  callback: (update: { coin: string, interval: string, candles: WsCandle[] }) => void
  ): Promise<void> {
-  const key = this.getCandleKey(coin, interval);
   
   // Fetch initial candles
   await this.refreshCandleData(coin, interval, lookbackMs);

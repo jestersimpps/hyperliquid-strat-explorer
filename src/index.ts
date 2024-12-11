@@ -6,6 +6,10 @@ import { detectBullishPatterns, detectBearishPatterns, formatPatternInfo, combin
 import { convertWsCandles } from './utils/candle-converter';
 
 async function main() {
+    const symbol = 'HYPE'
+    const interval = '1m'
+    const oneHourMs = 60 * 60 * 1000 ;
+
     // Initialize blessed screen
     const screen = blessed.screen({
         smartCSR: true,
@@ -30,7 +34,7 @@ async function main() {
         xPadding: 5,
         showLegend: true,
         wholeNumbersOnly: false,
-        label: 'BTC/USD Price'
+        label: `${symbol}/USD Price`
     });
 
     // Add log box for latest candle info
@@ -87,8 +91,7 @@ async function main() {
         // });
 
         // Subscribe to BTC 1-minute candles with 1 hour history
-        const oneHourMs = 60 * 60 * 1000;
-        await wsApi.subscribeToCandles('BTC', '1m', oneHourMs, ({ candles }) => {
+        await wsApi.subscribeToCandles(symbol, interval, oneHourMs, ({ candles }) => {
             // Prepare data for the chart
             const times = candles.map(c => new Date(c.t).toLocaleTimeString());
             const prices = candles.map(c => parseFloat(c.c));
@@ -100,7 +103,7 @@ async function main() {
 
             // Update the line chart
             line.setData([{
-                title: 'BTC/USD',
+                title: `${symbol}/USD`,
                 x: times,
                 y: prices,
                 style: {
@@ -125,9 +128,8 @@ async function main() {
             );
 
             // Convert candles and detect patterns
-            const convertedCandles = convertWsCandles(candles);
-            const bullishPatterns = detectBullishPatterns(convertedCandles);
-            const bearishPatterns = detectBearishPatterns(convertedCandles);
+            const bullishPatterns = detectBullishPatterns(candles);
+            const bearishPatterns = detectBearishPatterns(candles);
             const patternInfo = combinePatternResults(bullishPatterns, bearishPatterns);
             patternBox.setContent(formatPatternInfo(patternInfo));
 

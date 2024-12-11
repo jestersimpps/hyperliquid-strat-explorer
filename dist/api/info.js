@@ -45,6 +45,17 @@ class HyperliquidInfoAPI extends base_1.BaseAPI {
             endTime,
         });
     }
+    async getCandles(coin, interval, startTime, endTime) {
+        return this.post(API_URL, {
+            type: 'candleSnapshot',
+            req: {
+                coin,
+                interval,
+                startTime,
+                endTime
+            }
+        });
+    }
     // Spot Market Methods
     async getSpotMeta() {
         return this.post(API_URL, {

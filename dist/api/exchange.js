@@ -25,5 +25,38 @@ class HyperliquidExchangeAPI extends base_1.BaseAPI {
             }))
         });
     }
+    async cancelOrdersByCloid(cancels) {
+        return this.post(EXCHANGE_URL, {
+            type: 'cancelByCloid',
+            cancels: cancels.map(({ asset, cloid }) => ({
+                asset,
+                cloid
+            }))
+        });
+    }
+    async withdraw(request) {
+        return this.post(EXCHANGE_URL, request);
+    }
+    async sendUsd(request) {
+        return this.post(EXCHANGE_URL, request);
+    }
+    async sendSpot(request) {
+        return this.post(EXCHANGE_URL, request);
+    }
+    async updateLeverage(request) {
+        return this.post(EXCHANGE_URL, request);
+    }
+    async updateIsolatedMargin(request) {
+        return this.post(EXCHANGE_URL, request);
+    }
+    async vaultTransfer(request) {
+        return this.post(EXCHANGE_URL, request);
+    }
+    async approveAgent(request) {
+        return this.post(EXCHANGE_URL, request);
+    }
+    async approveBuilderFee(request) {
+        return this.post(EXCHANGE_URL, request);
+    }
 }
 exports.HyperliquidExchangeAPI = HyperliquidExchangeAPI;

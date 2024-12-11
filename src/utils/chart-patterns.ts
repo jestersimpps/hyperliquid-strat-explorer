@@ -1,21 +1,25 @@
 import {
-  CandleData,
-  bullishengulfingpattern,
-  morningstar,
-  bullishharami,
-  piercingline,
-  bullishmarubozu,
-  threewhitesoldiers,
-  bearishengulfingpattern,
-  eveningstar,
-  bearishharami,
-  darkcloudcover,
-  bearishmarubozu,
-  threeblackcrows
+ CandleData,
+ bullishengulfingpattern,
+ morningstar,
+ bullishharami,
+ piercingline,
+ bullishmarubozu,
+ threewhitesoldiers,
+ bearishengulfingpattern,
+ eveningstar,
+ bearishharami,
+ darkcloudcover,
+ bearishmarubozu,
+ threeblackcrows,
 } from "technicalindicators";
 
-import { Candle as WsCandle } from '../types/websocket';
-import { Candle, convertWsCandle, convertWsCandles, convertToTechnicalFormat } from './candle-converter';
+import { WsCandle } from "../types/websocket";
+import {
+ Candle,
+ convertWsCandles,
+ convertToTechnicalFormat,
+} from "./candle-converter";
 
 interface PatternResult {
  pattern: string;
@@ -23,7 +27,6 @@ interface PatternResult {
  endIndex: number;
  confidence: number;
 }
-
 
 /**
  * Detect all bullish patterns in the given candle data
@@ -609,50 +612,50 @@ function average(numbers: number[]): number {
 }
 
 export interface PatternInfo {
-  bullish: {
-    pattern: string;
-    confidence: number;
-  }[];
-  bearish: {
-    pattern: string;
-    confidence: number;
-  }[];
+ bullish: {
+  pattern: string;
+  confidence: number;
+ }[];
+ bearish: {
+  pattern: string;
+  confidence: number;
+ }[];
 }
 
 export function formatPatternInfo(info: PatternInfo): string {
-  let content = '';
-  
-  if (info.bullish.length > 0) {
-    content += 'Bullish Patterns:\n';
-    info.bullish.forEach(p => {
-      content += `  ${p.pattern} (${(p.confidence * 100).toFixed(1)}%)\n`;
-    });
-  }
-  
-  if (info.bearish.length > 0) {
-    content += '\nBearish Patterns:\n';
-    info.bearish.forEach(p => {
-      content += `  ${p.pattern} (${(p.confidence * 100).toFixed(1)}%)\n`;
-    });
-  }
-  
-  return content || 'No patterns detected';
+ let content = "";
+
+ if (info.bullish.length > 0) {
+  content += "Bullish Patterns:\n";
+  info.bullish.forEach((p) => {
+   content += `  ${p.pattern} (${(p.confidence * 100).toFixed(1)}%)\n`;
+  });
+ }
+
+ if (info.bearish.length > 0) {
+  content += "\nBearish Patterns:\n";
+  info.bearish.forEach((p) => {
+   content += `  ${p.pattern} (${(p.confidence * 100).toFixed(1)}%)\n`;
+  });
+ }
+
+ return content || "No patterns detected";
 }
 
 export function combinePatternResults(
-  bullishPatterns: PatternResult[],
-  bearishPatterns: PatternResult[]
+ bullishPatterns: PatternResult[],
+ bearishPatterns: PatternResult[]
 ): PatternInfo {
-  return {
-    bullish: bullishPatterns.map(p => ({
-      pattern: p.pattern,
-      confidence: p.confidence
-    })),
-    bearish: bearishPatterns.map(p => ({
-      pattern: p.pattern,
-      confidence: p.confidence
-    }))
-  };
+ return {
+  bullish: bullishPatterns.map((p) => ({
+   pattern: p.pattern,
+   confidence: p.confidence,
+  })),
+  bearish: bearishPatterns.map((p) => ({
+   pattern: p.pattern,
+   confidence: p.confidence,
+  })),
+ };
 }
 
 function calculateConfidence(

@@ -39,7 +39,7 @@ export interface AllMids {
   mids: Record<string, string>;
 }
 
-export interface Candle {
+export interface WsCandle {
   t: number; // open millis
   T: number; // close millis
   s: string; // coin

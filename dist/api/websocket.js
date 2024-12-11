@@ -14,8 +14,12 @@ class HyperliquidWebSocketAPI extends events_1.EventEmitter {
     reconnectDelay = 1000;
     pingInterval;
     WS_URL = "wss://api.hyperliquid.xyz/ws";
-    constructor() {
+    candleArrays = new Map();
+    candleRefreshTimers = new Map();
+    infoApi;
+    constructor(infoApi) {
         super();
+        this.infoApi = infoApi;
     }
     async connect() {
         return new Promise((resolve, reject) => {
@@ -106,6 +110,21 @@ class HyperliquidWebSocketAPI extends events_1.EventEmitter {
         if (this.pingInterval) {
             clearInterval(this.pingInterval);
         }
+        // Clear all candle refresh timers
+        for (const timer of this.candleRefreshTimers.values()) {
+            clearInterval(timer);
+        }
+        this.candleRefreshTimers.clear();
+    }
+    async refreshCandleData(coin, interval, lookbackMs) {
+        const key = this.getCandleKey(coin, interval);
+        const startTime = Date.now() - lookbackMs;
+        const newCandles = await this.infoApi.getCandles(coin, interval, startTime);
+        this.candleArrays.set(key, newCandles);
+        this.emit('candles', { coin, interval, candles: newCandles });
+    }
+    shouldRefreshCandles(candle) {
+        return candle.n === 1; // Trades reset to 1 indicates a new candle
     }
     handleMessage(message) {
         if (!message.channel || !message.data) {
@@ -134,12 +153,10 @@ class HyperliquidWebSocketAPI extends events_1.EventEmitter {
             case 'candle':
                 if (Array.isArray(message.data)) {
                     const candles = message.data;
-                    candles.forEach(candle => {
-                        this.emit('candles', candle);
-                    });
+                    candles.forEach(candle => this.updateCandle(candle));
                 }
                 else {
-                    this.emit('candles', message.data);
+                    this.updateCandle(message.data);
                 }
                 break;
             default:
@@ -195,8 +212,39 @@ class HyperliquidWebSocketAPI extends events_1.EventEmitter {
         this.on('orders', callback);
         await this.subscribe('orders');
     }
-    async subscribeToCandles(coin, interval, callback) {
+    getCandleKey(coin, interval) {
+        return `${coin}:${interval}`;
+    }
+    updateCandle(candle) {
+        const key = this.getCandleKey(candle.s, candle.i);
+        const candles = this.candleArrays.get(key);
+        if (!candles)
+            return;
+        // Check if we need to refresh the candle data
+        if (this.shouldRefreshCandles(candle)) {
+            this.refreshCandleData(candle.s, candle.i, 60 * 60 * 1000).catch(error => {
+                console.error('Error refreshing candle data:', error);
+            });
+            return;
+        }
+        // Find and update or append the candle
+        const index = candles.findIndex(c => c.t === candle.t);
+        if (index !== -1) {
+            candles[index] = candle;
+        }
+        else {
+            candles.push(candle);
+        }
+        // Sort by timestamp and emit the full array
+        candles.sort((a, b) => a.t - b.t);
+        this.emit('candles', { coin: candle.s, interval: candle.i, candles });
+    }
+    async subscribeToCandles(coin, interval, lookbackMs, callback) {
+        // Fetch initial candles
+        await this.refreshCandleData(coin, interval, lookbackMs);
+        // Set up the callback
         this.on('candles', callback);
+        // Subscribe to live updates
         await this.subscribe('candle', coin, interval);
     }
     close() {
