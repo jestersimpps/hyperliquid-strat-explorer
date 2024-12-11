@@ -1,7 +1,15 @@
 import { 
   OrderRequest,
   OrderResponse,
-  CancelResponse
+  CancelResponse,
+  WithdrawRequest,
+  UsdSendRequest,
+  SpotSendRequest,
+  UpdateLeverageRequest,
+  UpdateIsolatedMarginRequest,
+  VaultTransferRequest,
+  ApproveAgentRequest,
+  ApproveBuilderFeeRequest
 } from '../types/hyperliquid';
 import { BaseAPI } from './base';
 
@@ -27,5 +35,47 @@ export class HyperliquidExchangeAPI extends BaseAPI {
         o: oid
       }))
     });
+  }
+
+  async cancelOrdersByCloid(cancels: Array<{asset: number, cloid: string}>): Promise<CancelResponse> {
+    return this.post(EXCHANGE_URL, {
+      type: 'cancelByCloid',
+      cancels: cancels.map(({asset, cloid}) => ({
+        asset,
+        cloid
+      }))
+    });
+  }
+
+  async withdraw(request: WithdrawRequest): Promise<void> {
+    return this.post(EXCHANGE_URL, request);
+  }
+
+  async sendUsd(request: UsdSendRequest): Promise<void> {
+    return this.post(EXCHANGE_URL, request);
+  }
+
+  async sendSpot(request: SpotSendRequest): Promise<void> {
+    return this.post(EXCHANGE_URL, request);
+  }
+
+  async updateLeverage(request: UpdateLeverageRequest): Promise<void> {
+    return this.post(EXCHANGE_URL, request);
+  }
+
+  async updateIsolatedMargin(request: UpdateIsolatedMarginRequest): Promise<void> {
+    return this.post(EXCHANGE_URL, request);
+  }
+
+  async vaultTransfer(request: VaultTransferRequest): Promise<void> {
+    return this.post(EXCHANGE_URL, request);
+  }
+
+  async approveAgent(request: ApproveAgentRequest): Promise<void> {
+    return this.post(EXCHANGE_URL, request);
+  }
+
+  async approveBuilderFee(request: ApproveBuilderFeeRequest): Promise<void> {
+    return this.post(EXCHANGE_URL, request);
   }
 }

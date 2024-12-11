@@ -105,6 +105,73 @@ export interface OrderRequest {
   c?: string // cloid (optional)
 }
 
+export interface WithdrawRequest {
+  type: 'withdraw3'
+  hyperliquidChain: 'Mainnet' | 'Testnet'
+  signatureChainId: string
+  amount: string
+  time: number
+  destination: string
+}
+
+export interface UsdSendRequest {
+  type: 'usdSend'
+  hyperliquidChain: 'Mainnet' | 'Testnet'
+  signatureChainId: string
+  destination: string
+  amount: string
+  time: number
+}
+
+export interface SpotSendRequest {
+  type: 'spotSend'
+  hyperliquidChain: 'Mainnet' | 'Testnet'
+  signatureChainId: string
+  destination: string
+  token: string
+  amount: string
+  time: number
+}
+
+export interface UpdateLeverageRequest {
+  type: 'updateLeverage'
+  asset: number
+  isCross: boolean
+  leverage: number
+}
+
+export interface UpdateIsolatedMarginRequest {
+  type: 'updateIsolatedMargin'
+  asset: number
+  isBuy: boolean
+  ntli: number
+}
+
+export interface VaultTransferRequest {
+  type: 'vaultTransfer'
+  vaultAddress: string
+  isDeposit: boolean
+  usd: number
+}
+
+export interface ApproveAgentRequest {
+  type: 'approveAgent'
+  hyperliquidChain: 'Mainnet' | 'Testnet'
+  signatureChainId: string
+  agentAddress: string
+  agentName?: string
+  nonce: number
+}
+
+export interface ApproveBuilderFeeRequest {
+  type: 'approveBuilderFee'
+  hyperliquidChain: 'Mainnet' | 'Testnet'
+  signatureChainId: string
+  maxFeeRate: string
+  builder: string
+  nonce: number
+}
+
 export interface OrderResponse {
   status: 'ok'
   response: {
