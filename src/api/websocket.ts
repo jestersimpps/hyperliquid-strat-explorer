@@ -22,6 +22,7 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
  private pingInterval?: NodeJS.Timeout;
  private readonly WS_URL = "wss://api.hyperliquid.xyz/ws";
  private candleArrays: Map<string, Candle[]> = new Map();
+ private candleRefreshTimers: Map<string, NodeJS.Timeout> = new Map();
  private infoApi: HyperliquidInfoAPI;
 
  constructor(infoApi: HyperliquidInfoAPI) {
@@ -131,6 +132,32 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
   if (this.pingInterval) {
    clearInterval(this.pingInterval);
   }
+  // Clear all candle refresh timers
+  for (const timer of this.candleRefreshTimers.values()) {
+   clearInterval(timer);
+  }
+  this.candleRefreshTimers.clear();
+ }
+
+ private parseInterval(interval: string): number {
+  const value = parseInt(interval.slice(0, -1));
+  const unit = interval.slice(-1);
+  
+  switch (unit) {
+    case 'm': return value * 60 * 1000; // minutes to ms
+    case 'h': return value * 60 * 60 * 1000; // hours to ms
+    case 'd': return value * 24 * 60 * 60 * 1000; // days to ms
+    default: throw new Error(`Unsupported interval unit: ${unit}`);
+  }
+ }
+
+ private async refreshCandleData(coin: string, interval: string, lookbackMs: number): Promise<void> {
+  const key = this.getCandleKey(coin, interval);
+  const startTime = Date.now() - lookbackMs;
+  const newCandles = await this.infoApi.getCandles(coin, interval, startTime);
+  
+  this.candleArrays.set(key, newCandles);
+  this.emit('candles', { coin, interval, candles: newCandles });
  }
 
  private handleMessage(message: WsMessage): void {
@@ -274,12 +301,14 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
  ): Promise<void> {
   const key = this.getCandleKey(coin, interval);
   
-  // Fetch initial candles
-  const startTime = Date.now() - lookbackMs;
-  const initialCandles = await this.infoApi.getCandles(coin, interval, startTime);
+  // Clear any existing refresh timer for this subscription
+  const existingTimer = this.candleRefreshTimers.get(key);
+  if (existingTimer) {
+    clearInterval(existingTimer);
+  }
   
-  // Store and sort the candles
-  this.candleArrays.set(key, initialCandles);
+  // Fetch initial candles
+  await this.refreshCandleData(coin, interval, lookbackMs);
   
   // Set up the callback
   this.on('candles', callback);
@@ -287,8 +316,15 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
   // Subscribe to live updates
   await this.subscribe('candle', coin, interval);
   
-  // Emit initial candles
-  callback({ coin, interval, candles: initialCandles });
+  // Set up periodic refresh based on interval
+  const refreshMs = this.parseInterval(interval);
+  const timer = setInterval(() => {
+    this.refreshCandleData(coin, interval, lookbackMs).catch(error => {
+      console.error('Error refreshing candle data:', error);
+    });
+  }, refreshMs);
+  
+  this.candleRefreshTimers.set(key, timer);
  }
 
  public close(): void {
