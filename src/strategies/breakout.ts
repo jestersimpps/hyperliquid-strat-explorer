@@ -1,5 +1,5 @@
 import { WsCandle } from "../types/websocket";
-import { BreakoutSignal } from "../types/breakout";
+import { BreakoutSignal, SignalType } from "../types/breakout";
 import { detectSupportResistance } from "../utils/support-resistance";
 
 export class BreakoutStrategy {
@@ -65,7 +65,7 @@ export class BreakoutStrategy {
     const trend = this.detectTrend(candles);
 
     // Check for breakout
-    let breakoutType: 'RESISTANCE_BREAK' | 'SUPPORT_BREAK' | null = null;
+    let breakoutType: SignalType | null = null;
     let level = 0;
 
     const resistanceLevel = resistance.end.y;
