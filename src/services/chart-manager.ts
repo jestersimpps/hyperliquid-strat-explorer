@@ -42,7 +42,7 @@ export class ChartManager {
 
             chart.setData([
                 {
-                    title: `${symbol}/USD`,
+                    title: `${symbol}/USD - ${candles[0].i} - ${candles.length} candles`,
                     x: times,
                     y: prices,
                     style: { line: 'yellow' }
