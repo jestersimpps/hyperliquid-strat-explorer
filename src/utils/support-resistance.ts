@@ -76,32 +76,71 @@ function findBestFittingLine(points: Point[], tolerance: number): Line {
   return bestLine || linearRegression(points);
 }
 
+function calculateLineScore(line: Line, points: Point[], tolerance: number): number {
+  let score = 0;
+  for (const point of points) {
+    const slope = (line.end.y - line.start.y) / (line.end.x - line.start.x);
+    const intercept = line.start.y - slope * line.start.x;
+    const expectedY = slope * point.x + intercept;
+    if (Math.abs(point.y - expectedY) <= tolerance) {
+      score++;
+    }
+  }
+  return score;
+}
+
 export function detectSupportResistance(
-  candles: WsCandle[], 
-  chunkSize: number = 10,
+  candles: WsCandle[],
   tolerance: number = 0.01  // 1% tolerance for point-to-line distance
 ): SupportResistanceLines {
-  const chunks: WsCandle[][] = [];
-  
-  // Split candles into chunks
-  for (let i = 0; i < candles.length; i += chunkSize) {
-    chunks.push(candles.slice(i, i + chunkSize));
+  // Try different chunk sizes from 5% to 20% of total candles
+  const minChunkSize = Math.max(5, Math.floor(candles.length * 0.05));
+  const maxChunkSize = Math.max(10, Math.floor(candles.length * 0.20));
+  const chunkSizes = Array.from(
+    { length: 5 }, 
+    (_, i) => Math.floor(minChunkSize + (maxChunkSize - minChunkSize) * (i / 4))
+  );
+
+  let bestSupport: Line | null = null;
+  let bestResistance: Line | null = null;
+  let bestSupportScore = -1;
+  let bestResistanceScore = -1;
+
+  for (const chunkSize of chunkSizes) {
+    const chunks: WsCandle[][] = [];
+    for (let i = 0; i < candles.length; i += chunkSize) {
+      chunks.push(candles.slice(i, i + chunkSize));
+    }
+
+    const lowPoints: Point[] = chunks.map((chunk, chunkIndex) => ({
+      x: chunkIndex * chunkSize,
+      y: Math.min(...chunk.map(c => parseFloat(c.l)))
+    }));
+
+    const highPoints: Point[] = chunks.map((chunk, chunkIndex) => ({
+      x: chunkIndex * chunkSize,
+      y: Math.max(...chunk.map(c => parseFloat(c.h)))
+    }));
+
+    const support = findBestFittingLine(lowPoints, tolerance);
+    const resistance = findBestFittingLine(highPoints, tolerance);
+
+    const supportScore = calculateLineScore(support, lowPoints, tolerance);
+    const resistanceScore = calculateLineScore(resistance, highPoints, tolerance);
+
+    if (supportScore > bestSupportScore) {
+      bestSupportScore = supportScore;
+      bestSupport = support;
+    }
+
+    if (resistanceScore > bestResistanceScore) {
+      bestResistanceScore = resistanceScore;
+      bestResistance = resistance;
+    }
   }
 
-  // Find lowest lows and highest highs in each chunk
-  const lowPoints: Point[] = chunks.map((chunk, chunkIndex) => ({
-    x: chunkIndex * chunkSize,
-    y: Math.min(...chunk.map(c => parseFloat(c.l)))
-  }));
-
-  const highPoints: Point[] = chunks.map((chunk, chunkIndex) => ({
-    x: chunkIndex * chunkSize,
-    y: Math.max(...chunk.map(c => parseFloat(c.h)))
-  }));
-
-  // Find best fitting lines
-  const support = findBestFittingLine(lowPoints, tolerance);
-  const resistance = findBestFittingLine(highPoints, tolerance);
-
-  return { support, resistance };
+  return {
+    support: bestSupport!,
+    resistance: bestResistance!
+  };
 }
