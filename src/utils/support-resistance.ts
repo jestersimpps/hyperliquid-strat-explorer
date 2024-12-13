@@ -8,6 +8,7 @@ interface Point {
 interface Line {
   start: Point;
   end: Point;
+  strength: number;
 }
 
 interface SupportResistanceLines {
@@ -47,6 +48,7 @@ function linearRegression(points: Point[]): Line {
 function findBestFittingLine(points: Point[], tolerance: number): Line {
   let bestLine: Line | null = null;
   let maxPoints = 0;
+  let strength = 0;
 
   // Try each pair of points as potential line endpoints
   for (let i = 0; i < points.length; i++) {
@@ -65,15 +67,23 @@ function findBestFittingLine(points: Point[], tolerance: number): Line {
 
       if (pointsNearLine > maxPoints) {
         maxPoints = pointsNearLine;
+        strength = pointsNearLine / points.length;
         bestLine = {
           start: points[i],
-          end: points[j]
+          end: points[j],
+          strength
         };
       }
     }
   }
 
-  return bestLine || linearRegression(points);
+  if (bestLine) {
+    return bestLine;
+  }
+  
+  // Fallback to linear regression with minimal strength
+  const regression = linearRegression(points);
+  return { ...regression, strength: 0.1 };
 }
 
 function calculateLineScore(line: Line, points: Point[], tolerance: number): number {

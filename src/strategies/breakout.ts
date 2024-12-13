@@ -1,6 +1,7 @@
 import { WsCandle } from "../types/websocket";
 import { BreakoutSignal, SignalType } from "../types/breakout";
 import { detectSupportResistance } from "../utils/support-resistance";
+import { Line } from "../utils/support-resistance";
 
 export class BreakoutStrategy {
   private readonly volumeThreshold = 1.5; // 150% of average volume
