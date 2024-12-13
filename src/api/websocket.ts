@@ -1,17 +1,16 @@
 import WebSocket from "ws";
 import { EventEmitter } from "events";
 import { HyperliquidInfoAPI } from "./info";
-import { BreakoutDetector } from "./breakout";
-import { 
-  WsMessage, 
-  WsSubscription, 
-  WsBook, 
-  WsTrade,
-  WsFill,
-  WsUserFunding,
-  WsLiquidation,
-  WsOrder,
-  WsCandle
+import {
+ WsMessage,
+ WsSubscription,
+ WsBook,
+ WsTrade,
+ WsFill,
+ WsUserFunding,
+ WsLiquidation,
+ WsOrder,
+ WsCandle,
 } from "../types/websocket";
 
 export class HyperliquidWebSocketAPI extends EventEmitter {
@@ -25,17 +24,10 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
  private candleArrays: Map<string, WsCandle[]> = new Map();
  private candleRefreshTimers: Map<string, NodeJS.Timeout> = new Map();
  private infoApi: HyperliquidInfoAPI;
- private breakoutDetector: BreakoutDetector;
 
  constructor(infoApi: HyperliquidInfoAPI) {
   super();
   this.infoApi = infoApi;
-  this.breakoutDetector = new BreakoutDetector();
-  
-  // Forward breakout events
-  this.breakoutDetector.on('breakout', (signal) => {
-    this.emit('breakout', signal);
-  });
  }
 
  public async connect(): Promise<void> {
@@ -110,21 +102,25 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
   }, delay);
  }
 
- private formatSubscriptionMessage(type: string, coin?: string, interval?: string): WsSubscription {
+ private formatSubscriptionMessage(
+  type: string,
+  coin?: string,
+  interval?: string
+ ): WsSubscription {
   const subscription: WsSubscription = {
-    method: 'subscribe',
-    subscription: {
-      type: type,
-    }
+   method: "subscribe",
+   subscription: {
+    type: type,
+   },
   };
-  
+
   if (coin) {
-    subscription.subscription.coin = coin;
+   subscription.subscription.coin = coin;
   }
   if (interval) {
-    subscription.subscription.interval = interval;
+   subscription.subscription.interval = interval;
   }
-  
+
   return subscription;
  }
 
@@ -147,13 +143,17 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
   this.candleRefreshTimers.clear();
  }
 
- private async refreshCandleData(coin: string, interval: string, lookbackMs: number): Promise<void> {
+ private async refreshCandleData(
+  coin: string,
+  interval: string,
+  lookbackMs: number
+ ): Promise<void> {
   const key = this.getCandleKey(coin, interval);
   const startTime = Date.now() - lookbackMs;
   const newCandles = await this.infoApi.getCandles(coin, interval, startTime);
-  
+
   this.candleArrays.set(key, newCandles);
-  this.emit('candles', { coin, interval, candles: newCandles });
+  this.emit("candles", { coin, interval, candles: newCandles });
  }
 
  private shouldRefreshCandles(candle: WsCandle): boolean {
@@ -162,39 +162,38 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
 
  private handleMessage(message: WsMessage): void {
   if (!message.channel || !message.data) {
-    console.warn('Received malformed message:', message);
-    return;
+   console.warn("Received malformed message:", message);
+   return;
   }
 
   switch (message.channel) {
-    case 'l2Book':
-      this.emit('l2Book', message.data as WsBook);
-      break;
-    case 'trades':
-      this.emit('trades', message.data as WsTrade);
-      break;
-    case 'fills':
-      this.emit('fills', message.data as WsFill);
-      break;
-    case 'userFunding':
-      this.emit('userFunding', message.data as WsUserFunding);
-      break;
-    case 'liquidations':
-      this.emit('liquidations', message.data as WsLiquidation);
-      break;
-    case 'orders':
-      this.emit('orders', message.data as WsOrder);
-      break;
-    case 'candle':
-      if (Array.isArray(message.data)) {
-        const candles = message.data as WsCandle[];
-        candles.forEach(candle => this.updateCandle(candle));
-      } else {
-        this.updateCandle(message.data as WsCandle);
-      }
-      break;
-    default:
-      console.warn('Unknown message channel:', message.channel);
+   case "l2Book":
+    this.emit("l2Book", message.data as WsBook);
+    break;
+   case "trades":
+    this.emit("trades", message.data as WsTrade);
+    break;
+   case "fills":
+    this.emit("fills", message.data as WsFill);
+    break;
+   case "userFunding":
+    this.emit("userFunding", message.data as WsUserFunding);
+    break;
+   case "liquidations":
+    this.emit("liquidations", message.data as WsLiquidation);
+    break;
+   case "orders":
+    this.emit("orders", message.data as WsOrder);
+    break;
+   case "candle":
+    if (Array.isArray(message.data)) {
+     const candles = message.data as WsCandle[];
+     candles.forEach((candle) => this.updateCandle(candle));
+    } else {
+     this.updateCandle(message.data as WsCandle);
+    }
+    break;
+   default:
   }
  }
 
@@ -202,7 +201,11 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
   return `${type}:${coin || ""}`;
  }
 
- private async subscribe(type: string, coin?: string, interval?: string): Promise<void> {
+ private async subscribe(
+  type: string,
+  coin?: string,
+  interval?: string
+ ): Promise<void> {
   if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
    await this.connect();
   }
@@ -216,7 +219,6 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
   return new Promise((resolve, reject) => {
    try {
     const message = this.formatSubscriptionMessage(type, coin, interval);
-    console.log("Sending subscription:", message); // Debug log
     this.ws!.send(JSON.stringify(message));
     this.subscriptions.add(subKey);
     resolve();
@@ -230,44 +232,44 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
   coin: string,
   callback: (book: WsBook) => void
  ): Promise<void> {
-  this.on('l2Book', callback);
-  await this.subscribe('l2Book', coin);
+  this.on("l2Book", callback);
+  await this.subscribe("l2Book", coin);
  }
 
  public async subscribeToTrades(
   coin: string,
   callback: (trade: WsTrade) => void
  ): Promise<void> {
-  this.on('trades', callback);
-  await this.subscribe('trades', coin);
+  this.on("trades", callback);
+  await this.subscribe("trades", coin);
  }
 
  public async subscribeToUserFills(
   callback: (fill: WsFill) => void
  ): Promise<void> {
-  this.on('fills', callback);
-  await this.subscribe('fills');
+  this.on("fills", callback);
+  await this.subscribe("fills");
  }
 
  public async subscribeToUserFunding(
   callback: (funding: WsUserFunding) => void
  ): Promise<void> {
-  this.on('userFunding', callback);
-  await this.subscribe('userFunding');
+  this.on("userFunding", callback);
+  await this.subscribe("userFunding");
  }
 
  public async subscribeToLiquidations(
   callback: (liquidation: WsLiquidation) => void
  ): Promise<void> {
-  this.on('liquidations', callback);
-  await this.subscribe('liquidations');
+  this.on("liquidations", callback);
+  await this.subscribe("liquidations");
  }
 
  public async subscribeToOrders(
   callback: (order: WsOrder) => void
  ): Promise<void> {
-  this.on('orders', callback);
-  await this.subscribe('orders');
+  this.on("orders", callback);
+  await this.subscribe("orders");
  }
 
  private getCandleKey(coin: string, interval: string): string {
@@ -277,45 +279,48 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
  private updateCandle(candle: WsCandle): void {
   const key = this.getCandleKey(candle.s, candle.i);
   const candles = this.candleArrays.get(key);
-  
+
   if (!candles) return;
 
   // Check if we need to refresh the candle data
   if (this.shouldRefreshCandles(candle)) {
-    this.refreshCandleData(candle.s, candle.i, 60 * 60 * 1000).catch(error => {
-      console.error('Error refreshing candle data:', error);
-    });
-    return;
+   this.refreshCandleData(candle.s, candle.i, 60 * 60 * 1000).catch((error) => {
+    console.error("Error refreshing candle data:", error);
+   });
+   return;
   }
 
   // Find and update or append the candle
-  const index = candles.findIndex(c => c.t === candle.t);
+  const index = candles.findIndex((c) => c.t === candle.t);
   if (index !== -1) {
-    candles[index] = candle;
+   candles[index] = candle;
   } else {
-    candles.push(candle);
+   candles.push(candle);
   }
 
   // Sort by timestamp and emit the full array
   candles.sort((a, b) => a.t - b.t);
-  this.emit('candles', { coin: candle.s, interval: candle.i, candles });
+  this.emit("candles", { coin: candle.s, interval: candle.i, candles });
  }
 
  public async subscribeToCandles(
   coin: string,
   interval: string,
   lookbackMs: number,
-  callback: (update: { coin: string, interval: string, candles: WsCandle[] }) => void
+  callback: (update: {
+   coin: string;
+   interval: string;
+   candles: WsCandle[];
+  }) => void
  ): Promise<void> {
-  
   // Fetch initial candles
   await this.refreshCandleData(coin, interval, lookbackMs);
-  
+
   // Set up the callback
-  this.on('candles', callback);
-  
+  this.on("candles", callback);
+
   // Subscribe to live updates
-  await this.subscribe('candle', coin, interval);
+  await this.subscribe("candle", coin, interval);
  }
 
  public close(): void {
