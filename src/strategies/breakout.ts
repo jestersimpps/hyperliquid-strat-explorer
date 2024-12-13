@@ -41,17 +41,50 @@ export class BreakoutStrategy {
     candles: WsCandle[], 
     breakoutCandle: WsCandle, 
     level: number, 
-    type: SignalType
+    type: SignalType,
+    minConfirmationTime: number = 15 * 60 * 1000  // 15 minutes default
   ): boolean {
     const subsequentCandles = candles.slice(
-      candles.findIndex(c => c.t === breakoutCandle.t) + 1,
-      candles.findIndex(c => c.t === breakoutCandle.t) + 1 + this.priceConfirmationPeriods
+      candles.findIndex(c => c.t === breakoutCandle.t) + 1
     );
 
+    // Check if enough time has passed
+    const timeElapsed = subsequentCandles.length > 0 ? 
+      subsequentCandles[subsequentCandles.length - 1].t - breakoutCandle.t : 0;
+    
+    if (timeElapsed < minConfirmationTime) {
+      return false;
+    }
+
+    // Check if price stayed beyond the level
     return subsequentCandles.every(candle => {
       const close = parseFloat(candle.c);
       return type === 'RESISTANCE_BREAK' ? close > level : close < level;
     });
+  }
+
+  private calculateATR(candles: WsCandle[]): number {
+    let sum = 0;
+    for (let i = 1; i < candles.length; i++) {
+      const high = parseFloat(candles[i].h);
+      const low = parseFloat(candles[i].l);
+      const prevClose = parseFloat(candles[i-1].c);
+      const tr = Math.max(
+        high - low,
+        Math.abs(high - prevClose),
+        Math.abs(low - prevClose)
+      );
+      sum += tr;
+    }
+    return sum / candles.length;
+  }
+
+  private checkVolatility(candles: WsCandle[], periods: number = 20): boolean {
+    const atr = this.calculateATR(candles.slice(-periods));
+    const currentPrice = parseFloat(candles[candles.length - 1].c);
+    const volatilityThreshold = currentPrice * 0.005; // 0.5% of price
+    
+    return atr > volatilityThreshold;
   }
 
   public detectBreakout(candles: WsCandle[]): BreakoutSignal | null {
@@ -108,9 +141,22 @@ export class BreakoutStrategy {
       multiTimeframe: true  // This would need to be implemented with multiple timeframe data
     };
 
-    const confidence = Object.values(confirmations).filter(Boolean).length / 5;
+    const volatilityConfirmation = this.checkVolatility(candles);
+    const timeElapsed = candles[candles.length - 1].t - currentCandle.t;
 
-    if (confidence >= 0.6) {  // Require at least 60% confidence
+    const confirmations = {
+      volumeIncrease: currentVolume / avgVolume,
+      priceAction: priceActionConfirmation,
+      trendAlignment: trendAlignmentConfirmation,
+      falseBreakoutCheck: falseBreakoutConfirmation,
+      multiTimeframe: true,
+      volatilityCheck: volatilityConfirmation,
+      timeElapsed: timeElapsed
+    };
+
+    const confidence = Object.values(confirmations).filter(Boolean).length / 7;
+
+    if (confidence >= 0.7) {  // Require at least 70% confidence
       return {
         type: breakoutType,
         price: currentPrice,
