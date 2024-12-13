@@ -88,6 +88,7 @@ export function updateBreakoutBox(
     "Volume Increase",
     `${(signal.confirmations.volumeIncrease * 100).toFixed(1)}%`,
    ],
+   ["Volume Confirmation", signal.confirmations.volumeConfirmation ? "✓" : "✗"],
    ["Price Action", signal.confirmations.priceAction ? "✓" : "✗"],
    ["Trend Alignment", signal.confirmations.trendAlignment ? "✓" : "✗"],
    [
