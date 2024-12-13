@@ -1,5 +1,7 @@
+export type SignalType = 'RESISTANCE_BREAK' | 'SUPPORT_BREAK' | 'AT_RESISTANCE' | 'AT_SUPPORT';
+
 export interface BreakoutSignal {
-  type: 'RESISTANCE_BREAK' | 'SUPPORT_BREAK';
+  type: SignalType;
   price: number;
   timestamp: number;
   confidence: number;  // 0-1 score based on confirmation factors

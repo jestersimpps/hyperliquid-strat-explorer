@@ -20,7 +20,7 @@ export class BreakoutStrategy {
     return currentVolume > (averageVolume * this.volumeThreshold);
   }
 
-  private checkPriceAction(candle: WsCandle, level: number, type: 'RESISTANCE_BREAK' | 'SUPPORT_BREAK'): boolean {
+  private checkPriceAction(candle: WsCandle, level: number, type: SignalType): boolean {
     const close = parseFloat(candle.c);
     return type === 'RESISTANCE_BREAK' ? 
       close > level && parseFloat(candle.o) < level :
@@ -68,12 +68,22 @@ export class BreakoutStrategy {
     let breakoutType: 'RESISTANCE_BREAK' | 'SUPPORT_BREAK' | null = null;
     let level = 0;
 
-    if (currentPrice > resistance.end.y) {
+    const resistanceLevel = resistance.end.y;
+    const supportLevel = support.end.y;
+    const priceThreshold = Math.abs(resistanceLevel - supportLevel) * 0.01; // 1% threshold
+
+    if (currentPrice > resistanceLevel) {
       breakoutType = 'RESISTANCE_BREAK';
-      level = resistance.end.y;
-    } else if (currentPrice < support.end.y) {
+      level = resistanceLevel;
+    } else if (currentPrice < supportLevel) {
       breakoutType = 'SUPPORT_BREAK';
-      level = support.end.y;
+      level = supportLevel;
+    } else if (Math.abs(currentPrice - resistanceLevel) <= priceThreshold) {
+      breakoutType = 'AT_RESISTANCE';
+      level = resistanceLevel;
+    } else if (Math.abs(currentPrice - supportLevel) <= priceThreshold) {
+      breakoutType = 'AT_SUPPORT';
+      level = supportLevel;
     }
 
     if (!breakoutType) return null;
