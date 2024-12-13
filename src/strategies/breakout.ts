@@ -5,7 +5,6 @@ import { detectSupportResistance } from "../utils/support-resistance";
 export class BreakoutStrategy {
   private readonly volumeThreshold = 1.5; // 150% of average volume
   private readonly priceConfirmationPeriods = 3; // Number of candles to confirm breakout
-  private readonly multiTimeframes = ['5m', '15m', '1h']; // Timeframes to check
 
   constructor() {
     // Initialize strategy

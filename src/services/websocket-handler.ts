@@ -30,7 +30,7 @@ export class WebSocketHandler {
                 return;
             }
 
-            this.ui.log.log(`Received ${candles.length} candles for ${symbol}`);
+            // DEBUG: this.ui.log.log(`Received ${candles.length} candles for ${symbol}`);
 
             // Update title with interval and candle count
             this.ui.updateTitle(candles[0].i, candles.length);
