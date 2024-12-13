@@ -6,6 +6,7 @@ import { Line } from "../utils/support-resistance";
 export class BreakoutStrategy {
   private readonly volumeThreshold = 1.5; // 150% of average volume
   private readonly priceConfirmationPeriods = 3; // Number of candles to confirm breakout
+  private breakoutTimestamps: Map<string, number> = new Map(); // Store breakout timestamps
 
   constructor() {
     // Initialize strategy
@@ -134,7 +135,13 @@ export class BreakoutStrategy {
 
     // Calculate confidence score
     const volatilityConfirmation = this.checkVolatility(candles);
-    const timeElapsed = candles[candles.length - 1].t - currentCandle.t;
+    // Calculate or get initial breakout timestamp
+    const breakoutKey = `${breakoutType}-${level}`;
+    if (!this.breakoutTimestamps.has(breakoutKey)) {
+      this.breakoutTimestamps.set(breakoutKey, currentCandle.t);
+    }
+    const initialBreakoutTime = this.breakoutTimestamps.get(breakoutKey)!;
+    const timeElapsed = currentCandle.t - initialBreakoutTime;
 
     const confirmations = {
       volumeIncrease: currentVolume / avgVolume,
@@ -148,7 +155,13 @@ export class BreakoutStrategy {
 
     const confidence = Object.values(confirmations).filter(Boolean).length / 7;
 
-    if (confidence >= 0.1) {  // Require at least 70% confidence
+    // Clear breakout timestamp if confidence drops too low
+    if (confidence < 0.1) {
+      this.breakoutTimestamps.delete(breakoutKey);
+      return null;
+    }
+
+    if (confidence >= 0.1) {  // Require at least 10% confidence
       return {
         type: breakoutType,
         price: currentPrice,
