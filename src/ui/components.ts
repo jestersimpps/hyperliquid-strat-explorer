@@ -24,8 +24,8 @@ export function createUIComponents(symbols: string[]): UIComponents {
     });
 
     // Add chart for the symbol
-    const charts = new Map([[
-        symbols[0],
+    const charts = new Map([
+        [symbols[0],
         grid.set(0, 0, 8, 12, contrib.line, {
             style: {
                 line: "yellow",
@@ -37,8 +37,8 @@ export function createUIComponents(symbols: string[]): UIComponents {
             showLegend: true,
             wholeNumbersOnly: false,
             label: `${symbols[0]}/USD Price`
-        })
-    ]));
+        })]
+    ]);
 
     // Add log box for latest candle info
     const log = grid.set(8, 0, 4, 6, contrib.log, {
