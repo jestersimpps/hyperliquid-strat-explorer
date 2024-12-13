@@ -51,6 +51,16 @@ You will be prompted to:
 - `q`, `Esc`, or `Ctrl+C` to exit
 - Use mouse or touchpad to interact with the charts
 
+### Multiple Charts
+
+You can run multiple instances of the terminal simultaneously, each tracking a different symbol or timeframe:
+
+1. Open multiple terminal windows
+2. Run `npm start` in each window
+3. Enter different symbols/intervals for each instance
+
+This allows you to monitor multiple markets or timeframes side by side on your screen.
+
 ### Display Sections
 
 The terminal interface is divided into several sections:
