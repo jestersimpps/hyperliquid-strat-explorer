@@ -4,15 +4,15 @@ import { createUIComponents } from './ui/components';
 import { WebSocketHandler } from './services/websocket-handler';
 import { ChartManager } from './services/chart-manager';
 import { BreakoutManager } from './services/breakout-manager';
-import { promptForSymbol, promptForTimeframe } from './utils/prompt';
+import { promptForSymbol, promptForInterval } from './utils/prompt';
+import { calculateTimeframe } from './utils/time';
 
 async function main() {
-    const interval = '5m';
-
     try {
         // Get user inputs
         const symbol = await promptForSymbol();
-        const timeframeMs = await promptForTimeframe();
+        const interval = await promptForInterval();
+        const timeframeMs = calculateTimeframe(interval);
         
         // Initialize components
         const ui = createUIComponents([symbol]);
