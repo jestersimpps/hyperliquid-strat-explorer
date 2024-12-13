@@ -19,5 +19,7 @@ export interface BreakoutSignal {
     multiTimeframe: boolean;     // Confirmed on multiple timeframes
     volatilityCheck: boolean;    // Sufficient market volatility
     timeElapsed: number;         // Time since breakout in ms
+    volatilityCheck: boolean;    // Sufficient market volatility
+    timeElapsed: number;         // Time since breakout in ms
   };
 }
