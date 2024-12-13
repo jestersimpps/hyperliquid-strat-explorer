@@ -36,8 +36,10 @@ export function createUIComponents(symbols: string[]): UIComponents {
             xLabelPadding: 3,
             xPadding: 5,
             showLegend: true,
-            legendOffset: 0, 
-            legendPosition: 'left',  
+            legend: {
+                width: 20,
+                position: 'left'
+            },
             wholeNumbersOnly: false,
             label: `${symbols[0]}/USD Price Chart`
         })]
