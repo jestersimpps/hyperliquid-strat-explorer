@@ -3,7 +3,7 @@ import * as contrib from 'blessed-contrib';
 import { BreakoutSignal } from '../types/breakout';
 
 export interface UIComponents {
-    screen: typeof blessed.screen;
+    screen: blessed.Widgets.Screen;
     charts: Map<string, contrib.Widgets.LineElement>;
     log: contrib.Widgets.LogElement;
     breakoutBox: contrib.Widgets.TableElement;
