@@ -163,13 +163,8 @@ async function main() {
                     chart.options.minY = minPrice - padding;
                     chart.options.maxY = maxPrice + padding;
                     
-                    // Force chart refresh
-                    chart.setDisplay({
-                        firstCol: chart.options.firstCol,
-                        lastCol: chart.options.lastCol,
-                        firstRow: chart.options.firstRow,
-                        lastRow: chart.options.lastRow
-                    });
+                    // Force screen refresh
+                    screen.render();
 
                     // Log latest candle info
                     const latest = candles[candles.length - 1];
