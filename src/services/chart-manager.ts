@@ -64,7 +64,7 @@ export class ChartManager {
             chart.options.minY = minPrice - padding;
             chart.options.maxY = maxPrice + padding;
             
-            this.ui.log.log(`Updated chart for ${symbol} with ${times.length} data points`);
+            // this.ui.log.log(`Updated chart for ${symbol} with ${times.length} data points`);
         } catch (error) {
             this.ui.log.log(`Error updating chart for ${symbol}: ${error}`);
         }
