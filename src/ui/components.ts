@@ -95,6 +95,8 @@ export function updateBreakoutBox(
     signal.confirmations.falseBreakoutCheck ? "✓" : "✗",
    ],
    ["Multi-Timeframe", signal.confirmations.multiTimeframe ? "✓" : "✗"],
+   ["Volatility Check", signal.confirmations.volatilityCheck ? "✓" : "✗"],
+   ["Time Elapsed", `${(signal.confirmations.timeElapsed / 60000).toFixed(1)}min`],
    ["Confidence", `${(signal.confidence * 100).toFixed(1)}%`],
    ["Signal Type", signal.type],
   ])
