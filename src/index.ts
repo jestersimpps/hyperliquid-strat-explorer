@@ -38,10 +38,22 @@ async function main() {
     });
 
     // Add log box for latest candle info
-    const log = grid.set(8, 0, 4, 6, contrib.log, {
+    const log = grid.set(8, 0, 4, 4, contrib.log, {
         fg: "green",
         selectedFg: "green",
         label: 'Latest Candle Info'
+    });
+
+    // Add breakout confirmation box
+    const breakoutBox = grid.set(8, 4, 4, 8, contrib.table, {
+        keys: true,
+        fg: 'white',
+        selectedFg: 'white',
+        selectedBg: 'blue',
+        interactive: false,
+        label: 'Breakout Analysis',
+        columnSpacing: 2,
+        columnWidth: [20, 20]
     });
 
 
@@ -135,6 +147,36 @@ async function main() {
                 `V: ${parseFloat(latest.v).toFixed(2)} | ` +
                 `Trades: ${latest.n}`
             );
+
+            // Check for breakout
+            const breakoutSignal = strategy.detectBreakout(candles);
+            
+            // Update breakout box
+            const breakoutData = [
+                ['Indicator', 'Status'],
+                ['Volume Increase', breakoutSignal ? `${(breakoutSignal.confirmations.volumeIncrease * 100).toFixed(1)}%` : 'N/A'],
+                ['Price Action', breakoutSignal ? (breakoutSignal.confirmations.priceAction ? '✓' : '✗') : 'N/A'],
+                ['Trend Alignment', breakoutSignal ? (breakoutSignal.confirmations.trendAlignment ? '✓' : '✗') : 'N/A'],
+                ['False Breakout Check', breakoutSignal ? (breakoutSignal.confirmations.falseBreakoutCheck ? '✓' : '✗') : 'N/A'],
+                ['Multi-Timeframe', breakoutSignal ? (breakoutSignal.confirmations.multiTimeframe ? '✓' : '✗') : 'N/A'],
+                ['Confidence', breakoutSignal ? `${(breakoutSignal.confidence * 100).toFixed(1)}%` : 'N/A'],
+                ['Signal Type', breakoutSignal ? breakoutSignal.type : 'NO SIGNAL']
+            ];
+            
+            breakoutBox.setData({
+                headers: ['Indicator', 'Status'],
+                data: breakoutData.slice(1)
+            });
+
+            // If there's a high confidence breakout, log it
+            if (breakoutSignal && breakoutSignal.confidence > 0.8) {
+                log.log(
+                    `🚨 HIGH CONFIDENCE BREAKOUT DETECTED!\n` +
+                    `Type: ${breakoutSignal.type}\n` +
+                    `Price: ${breakoutSignal.price.toFixed(2)}\n` +
+                    `Confidence: ${(breakoutSignal.confidence * 100).toFixed(1)}%`
+                );
+            }
 
             // Render the screen
             screen.render();
