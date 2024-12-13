@@ -79,6 +79,14 @@ export interface SpotBalance {
   entryNtl: string;
 }
 
+export interface BreakoutSignal {
+  type: 'resistance' | 'support';
+  price: number;
+  volume: number;
+  timestamp: number;
+  confirmed: boolean;
+}
+
 export interface SpotAccountState {
   balances: SpotBalance[];
 }

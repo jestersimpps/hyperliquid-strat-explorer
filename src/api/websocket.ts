@@ -1,6 +1,7 @@
 import WebSocket from "ws";
 import { EventEmitter } from "events";
 import { HyperliquidInfoAPI } from "./info";
+import { BreakoutDetector } from "./breakout";
 import { 
   WsMessage, 
   WsSubscription, 
@@ -24,10 +25,17 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
  private candleArrays: Map<string, WsCandle[]> = new Map();
  private candleRefreshTimers: Map<string, NodeJS.Timeout> = new Map();
  private infoApi: HyperliquidInfoAPI;
+ private breakoutDetector: BreakoutDetector;
 
  constructor(infoApi: HyperliquidInfoAPI) {
   super();
   this.infoApi = infoApi;
+  this.breakoutDetector = new BreakoutDetector();
+  
+  // Forward breakout events
+  this.breakoutDetector.on('breakout', (signal) => {
+    this.emit('breakout', signal);
+  });
  }
 
  public async connect(): Promise<void> {
