@@ -8,11 +8,11 @@ import { promptForSymbol } from './utils/prompt';
 
 async function main() {
     const interval = '5m';
-    const oneHourMs = 24 * 60 * 60 * 1000;
 
     try {
-        // Get symbol from user
+        // Get user inputs
         const symbol = await promptForSymbol();
+        const timeframeMs = await promptForTimeframe();
         
         // Initialize components
         const ui = createUIComponents([symbol]);
@@ -26,7 +26,7 @@ async function main() {
         await wsApi.connect();
 
         // Subscribe to symbol
-        await wsHandler.subscribeToSymbol(symbol, interval, oneHourMs);
+        await wsHandler.subscribeToSymbol(symbol, interval, timeframeMs);
 
         // Handle graceful shutdown
         process.on('SIGINT', async () => {
