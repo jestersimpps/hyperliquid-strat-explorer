@@ -133,14 +133,6 @@ export class BreakoutStrategy {
       : false;
 
     // Calculate confidence score
-    const confirmations = {
-      volumeIncrease: currentVolume / avgVolume,
-      priceAction: priceActionConfirmation,
-      trendAlignment: trendAlignmentConfirmation,
-      falseBreakoutCheck: falseBreakoutConfirmation,
-      multiTimeframe: true  // This would need to be implemented with multiple timeframe data
-    };
-
     const volatilityConfirmation = this.checkVolatility(candles);
     const timeElapsed = candles[candles.length - 1].t - currentCandle.t;
 
