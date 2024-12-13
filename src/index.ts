@@ -5,10 +5,11 @@ import * as blessed from 'blessed';
 import * as contrib from 'blessed-contrib';
 
 async function main() {
-    const symbol = 'HYPE'
-    const interval = '5m'
+    const symbols = ['BTC', 'HYPE'];
+    const interval = '5m';
     const oneHourMs = 24 * 60 * 60 * 1000;
-    const strategy = new BreakoutStrategy();
+    const strategies = new Map(symbols.map(s => [s, new BreakoutStrategy()]));
+    const breakoutSignals = new Map<string, BreakoutSignal>();
 
     // Initialize blessed screen
     const screen = blessed.screen({
@@ -23,22 +24,25 @@ async function main() {
         screen: screen
     });
 
-    // Add chart
-    const line = grid.set(0, 0, 8, 12, contrib.line, {
-        style: {
-            line: "yellow",
-            text: "green",
-            baseline: "black"
-        },
-        xLabelPadding: 3,
-        xPadding: 5,
-        showLegend: true,
-        wholeNumbersOnly: false,
-        label: `${symbol}/USD Price`
-    });
+    // Add charts for each symbol
+    const charts = new Map(symbols.map((symbol, index) => [
+        symbol,
+        grid.set(0, index * 6, 8, 6, contrib.line, {
+            style: {
+                line: "yellow",
+                text: "green",
+                baseline: "black"
+            },
+            xLabelPadding: 3,
+            xPadding: 5,
+            showLegend: true,
+            wholeNumbersOnly: false,
+            label: `${symbol}/USD Price`
+        })
+    ]));
 
     // Add log box for latest candle info
-    const log = grid.set(8, 0, 4, 4, contrib.log, {
+    const log = grid.set(8, 0, 4, 6, contrib.log, {
         fg: "green",
         selectedFg: "green",
         label: 'Latest Candle Info'
@@ -88,8 +92,9 @@ async function main() {
         //     console.log('Ticker Update:', ticker);
         // });
 
-        // Subscribe to BTC 1-minute candles with 1 hour history
-        await wsApi.subscribeToCandles(symbol, interval, oneHourMs, ({ candles }) => {
+        // Subscribe to candles for each symbol
+        for (const symbol of symbols) {
+            await wsApi.subscribeToCandles(symbol, interval, oneHourMs, ({ candles }) => {
             // Prepare data for the chart
             const times = candles.map(c => new Date(c.t).toLocaleTimeString());
             const prices = candles.map(c => parseFloat(c.c));
@@ -110,8 +115,11 @@ async function main() {
                 resistance.start.y + (resistance.end.y - resistance.start.y) * (i / (times.length - 1))
             );
 
-            // Update the line chart with price and S/R lines
-            line.setData([
+            const chart = charts.get(symbol);
+            if (!chart) return;
+
+            // Update the chart with price and S/R lines
+            chart.setData([
                 {
                     title: `${symbol}/USD`,
                     x: times,
@@ -148,28 +156,52 @@ async function main() {
                 `Trades: ${latest.n}`
             );
 
-            // Check for breakout
+            // Check for breakout using the corresponding strategy
+            const strategy = strategies.get(symbol);
+            if (!strategy) return;
+            
             const breakoutSignal = strategy.detectBreakout(candles);
             
-            // Update breakout box
-            const breakoutData = [
-                ['Indicator', 'Status'],
-                ['Volume Increase', breakoutSignal ? `${(breakoutSignal.confirmations.volumeIncrease * 100).toFixed(1)}%` : 'N/A'],
-                ['Price Action', breakoutSignal ? (breakoutSignal.confirmations.priceAction ? '✓' : '✗') : 'N/A'],
-                ['Trend Alignment', breakoutSignal ? (breakoutSignal.confirmations.trendAlignment ? '✓' : '✗') : 'N/A'],
-                ['False Breakout Check', breakoutSignal ? (breakoutSignal.confirmations.falseBreakoutCheck ? '✓' : '✗') : 'N/A'],
-                ['Multi-Timeframe', breakoutSignal ? (breakoutSignal.confirmations.multiTimeframe ? '✓' : '✗') : 'N/A'],
-                ['Confidence', breakoutSignal ? `${(breakoutSignal.confidence * 100).toFixed(1)}%` : 'N/A'],
-                ['Signal Type', breakoutSignal ? breakoutSignal.type : 'NO SIGNAL']
-            ];
+            // Update breakout signals map
+            if (breakoutSignal) {
+                breakoutSignals.set(symbol, breakoutSignal);
+            } else {
+                breakoutSignals.delete(symbol);
+            }
             
-            breakoutBox.setData({
-                headers: ['Indicator', 'Status'],
-                data: breakoutData.slice(1)
-            });
+            // Update breakout box with active signals
+            const breakoutData = Array.from(breakoutSignals.entries()).map(([sym, signal]) => [
+                ['Symbol', sym],
+                ['Volume Increase', `${(signal.confirmations.volumeIncrease * 100).toFixed(1)}%`],
+                ['Price Action', signal.confirmations.priceAction ? '✓' : '✗'],
+                ['Trend Alignment', signal.confirmations.trendAlignment ? '✓' : '✗'],
+                ['False Breakout Check', signal.confirmations.falseBreakoutCheck ? '✓' : '✗'],
+                ['Multi-Timeframe', signal.confirmations.multiTimeframe ? '✓' : '✗'],
+                ['Confidence', `${(signal.confidence * 100).toFixed(1)}%`],
+                ['Signal Type', signal.type]
+            ]).flat();
+            
+            if (breakoutData.length > 0) {
+                breakoutBox.setData({
+                    headers: ['Indicator', 'Status'],
+                    data: breakoutData
+                });
+            } else {
+                breakoutBox.setData({
+                    headers: ['Indicator', 'Status'],
+                    data: [['No active breakout signals', '']]
+                });
+            }
 
             // If there's a high confidence breakout, log it
             if (breakoutSignal && breakoutSignal.confidence > 0.8) {
+                log.log(
+                    `🚨 HIGH CONFIDENCE BREAKOUT DETECTED on ${symbol}!\n` +
+                    `Type: ${breakoutSignal.type}\n` +
+                    `Price: ${breakoutSignal.price.toFixed(2)}\n` +
+                    `Confidence: ${(breakoutSignal.confidence * 100).toFixed(1)}%`
+                );
+            }
                 log.log(
                     `🚨 HIGH CONFIDENCE BREAKOUT DETECTED!\n` +
                     `Type: ${breakoutSignal.type}\n` +
