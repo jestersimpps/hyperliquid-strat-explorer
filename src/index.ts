@@ -137,7 +137,7 @@ async function main() {
                         throw new Error(`Chart not found for ${symbol}`);
                     }
 
-                    // Update the chart
+                    // Update the chart with fresh data
                     chart.setData([
                         {
                             title: `${symbol}/USD`,
@@ -159,9 +159,17 @@ async function main() {
                         }
                     ]);
                     
-                    // Set y-axis range
+                    // Force chart range update
                     chart.options.minY = minPrice - padding;
                     chart.options.maxY = maxPrice + padding;
+                    
+                    // Force chart refresh
+                    chart.setDisplay({
+                        firstCol: chart.options.firstCol,
+                        lastCol: chart.options.lastCol,
+                        firstRow: chart.options.firstRow,
+                        lastRow: chart.options.lastRow
+                    });
 
                     // Log latest candle info
                     const latest = candles[candles.length - 1];
