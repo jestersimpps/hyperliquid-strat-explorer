@@ -5,8 +5,8 @@ import * as contrib from 'blessed-contrib';
 
 async function main() {
     const symbol = 'HYPE'
-    const interval = '1m'
-    const oneHourMs = 60 * 60 * 1000 ;
+    const interval = '5m'
+    const oneHourMs = 24 * 60 * 60 * 1000 ;
 
     // Initialize blessed screen
     const screen = blessed.screen({
