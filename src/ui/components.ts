@@ -7,6 +7,7 @@ export interface UIComponents {
     charts: Map<string, contrib.Widgets.LineElement>;
     log: contrib.Widgets.LogElement;
     breakoutBox: contrib.Widgets.TableElement;
+    updateTitle: (interval: string, candleCount: number) => void;
 }
 
 export function createUIComponents(symbols: string[]): UIComponents {
@@ -65,7 +66,11 @@ export function createUIComponents(symbols: string[]): UIComponents {
         process.exit(0);
     });
 
-    return { screen, charts, log, breakoutBox };
+    const updateTitle = (interval: string, candleCount: number) => {
+        screen.title = `Hyperliquid Terminal - ${interval} - ${candleCount} candles`;
+    };
+
+    return { screen, charts, log, breakoutBox, updateTitle };
 }
 
 export function updateBreakoutBox(

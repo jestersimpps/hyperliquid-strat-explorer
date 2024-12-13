@@ -32,6 +32,9 @@ export class WebSocketHandler {
 
             this.ui.log.log(`Received ${candles.length} candles for ${symbol}`);
 
+            // Update title with interval and candle count
+            this.ui.updateTitle(candles[0].i, candles.length);
+
             // Update chart
             this.chartManager.updateChart(symbol, candles);
 
