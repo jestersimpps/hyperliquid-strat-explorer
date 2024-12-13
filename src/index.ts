@@ -12,7 +12,8 @@ async function main() {
         // Get user inputs
         const symbol = await promptForSymbol();
         const interval = await promptForInterval();
-        const timeframeMs = calculateTimeframe(interval);
+        const maxCandles = await promptForMaxCandles();
+        const timeframeMs = calculateTimeframe(interval, maxCandles);
         
         // Initialize components
         const ui = createUIComponents([symbol]);

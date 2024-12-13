@@ -23,9 +23,8 @@ export function intervalToMs(interval: TimeInterval): number {
     return interval.value * multipliers[interval.unit];
 }
 
-export function calculateTimeframe(interval: string): number {
+export function calculateTimeframe(interval: string, maxCandles: number): number {
     const parsedInterval = parseInterval(interval);
     const intervalMs = intervalToMs(parsedInterval);
-    const maxCandles = 200;
     return intervalMs * maxCandles;
 }

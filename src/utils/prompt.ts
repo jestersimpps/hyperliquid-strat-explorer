@@ -27,3 +27,18 @@ export async function promptForInterval(): Promise<string> {
         });
     });
 }
+
+export async function promptForMaxCandles(): Promise<number> {
+    const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+    });
+
+    return new Promise((resolve) => {
+        rl.question('Enter max number of candles (default: 200): ', (answer) => {
+            rl.close();
+            const maxCandles = parseInt(answer, 10);
+            resolve(isNaN(maxCandles) ? 200 : maxCandles);
+        });
+    });
+}
