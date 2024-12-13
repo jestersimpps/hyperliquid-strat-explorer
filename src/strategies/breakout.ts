@@ -41,7 +41,7 @@ export class BreakoutStrategy {
     candles: WsCandle[], 
     breakoutCandle: WsCandle, 
     level: number, 
-    type: 'RESISTANCE_BREAK' | 'SUPPORT_BREAK'
+    type: SignalType
   ): boolean {
     const subsequentCandles = candles.slice(
       candles.findIndex(c => c.t === breakoutCandle.t) + 1,
@@ -95,7 +95,9 @@ export class BreakoutStrategy {
       (breakoutType === 'RESISTANCE_BREAK' && trend === 'UP') ||
       (breakoutType === 'SUPPORT_BREAK' && trend === 'DOWN')
     );
-    const falseBreakoutConfirmation = this.checkFalseBreakout(candles, currentCandle, level, breakoutType);
+    const falseBreakoutConfirmation = breakoutType === 'RESISTANCE_BREAK' || breakoutType === 'SUPPORT_BREAK' 
+      ? this.checkFalseBreakout(candles, currentCandle, level, breakoutType)
+      : false;
 
     // Calculate confidence score
     const confirmations = {
