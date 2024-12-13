@@ -61,17 +61,19 @@ export class WebSocketHandler {
             // Update title with interval and candle count
             this.ui.updateTitle(candles[0].i, history.length);
 
-            // Update chart with full history
+            // Update chart with full history and force refresh
             this.chartManager.updateChart(symbol, history);
-
+            
             // Process breakout signals
             this.breakoutManager.processCandles(symbol, history);
 
             // Log latest candle
             this.logLatestCandle(symbol, history[history.length - 1]);
 
-            // Render screen
-            this.ui.screen.render();
+            // Force screen refresh
+            setImmediate(() => {
+                this.ui.screen.render();
+            });
 
         } catch (error) {
             this.ui.log.log(`Error processing ${symbol} data: ${error}`);

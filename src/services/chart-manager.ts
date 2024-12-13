@@ -19,6 +19,11 @@ export class ChartManager {
                 throw new Error(`Chart not found for ${symbol}`);
             }
 
+            // Ensure we have data to display
+            if (candles.length === 0) {
+                return;
+            }
+
             const times = candles.map(c => new Date(c.t).toLocaleTimeString());
             const prices = candles.map(c => parseFloat(c.c));
             
@@ -40,6 +45,7 @@ export class ChartManager {
                 resistance.start.y + (resistance.end.y - resistance.start.y) * (i / (times.length - 1))
             );
 
+            // Force chart refresh
             chart.setData([
                 {
                     title: `${symbol}/USD - ${candles[0].i} - ${candles.length} candles`,
