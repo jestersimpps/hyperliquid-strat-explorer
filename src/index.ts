@@ -4,7 +4,7 @@ import { createUIComponents } from './ui/components';
 import { WebSocketHandler } from './services/websocket-handler';
 import { ChartManager } from './services/chart-manager';
 import { BreakoutManager } from './services/breakout-manager';
-import { promptForSymbol } from './utils/prompt';
+import { promptForSymbol, promptForTimeframe } from './utils/prompt';
 
 async function main() {
     const interval = '5m';
