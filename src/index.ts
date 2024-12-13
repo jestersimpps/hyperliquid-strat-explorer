@@ -1,12 +1,14 @@
 import { HyperliquidInfoAPI } from './api/info';
 import { HyperliquidWebSocketAPI } from './api/websocket';
+import { BreakoutStrategy } from './strategies/breakout';
 import * as blessed from 'blessed';
 import * as contrib from 'blessed-contrib';
 
 async function main() {
     const symbol = 'HYPE'
     const interval = '5m'
-    const oneHourMs = 24 * 60 * 60 * 1000 ;
+    const oneHourMs = 24 * 60 * 60 * 1000;
+    const strategy = new BreakoutStrategy();
 
     // Initialize blessed screen
     const screen = blessed.screen({
@@ -85,15 +87,38 @@ async function main() {
             const maxPrice = Math.max(...prices);
             const padding = (maxPrice - minPrice) * 0.1; // 10% padding
 
-            // Update the line chart
-            line.setData([{
-                title: `${symbol}/USD`,
-                x: times,
-                y: prices,
-                style: {
-                    line: 'yellow'
+            // Calculate support and resistance lines
+            const { support, resistance } = strategy.analyzeTrendlines(candles);
+            
+            // Convert support and resistance lines to chart format
+            const supportPoints = times.map((_, i) => 
+                support.start.y + (support.end.y - support.start.y) * (i / (times.length - 1))
+            );
+            const resistancePoints = times.map((_, i) => 
+                resistance.start.y + (resistance.end.y - resistance.start.y) * (i / (times.length - 1))
+            );
+
+            // Update the line chart with price and S/R lines
+            line.setData([
+                {
+                    title: `${symbol}/USD`,
+                    x: times,
+                    y: prices,
+                    style: { line: 'yellow' }
+                },
+                {
+                    title: 'Support',
+                    x: times,
+                    y: supportPoints,
+                    style: { line: 'green' }
+                },
+                {
+                    title: 'Resistance',
+                    x: times,
+                    y: resistancePoints,
+                    style: { line: 'red' }
                 }
-            }]);
+            ]);
             
             // Set y-axis range
             line.options.minY = minPrice - padding;
