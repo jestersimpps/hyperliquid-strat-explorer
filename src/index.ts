@@ -1,6 +1,7 @@
 import { HyperliquidInfoAPI } from './api/info';
 import { HyperliquidWebSocketAPI } from './api/websocket';
 import { BreakoutStrategy } from './strategies/breakout';
+import { BreakoutSignal } from './types/breakout';
 import * as blessed from 'blessed';
 import * as contrib from 'blessed-contrib';
 
@@ -104,6 +105,9 @@ async function main() {
             const maxPrice = Math.max(...prices);
             const padding = (maxPrice - minPrice) * 0.1; // 10% padding
 
+            const strategy = strategies.get(symbol);
+            if (!strategy) return;
+            
             // Calculate support and resistance lines
             const { support, resistance } = strategy.analyzeTrendlines(candles);
             
@@ -141,8 +145,8 @@ async function main() {
             ]);
             
             // Set y-axis range
-            line.options.minY = minPrice - padding;
-            line.options.maxY = maxPrice + padding;
+            chart.options.minY = minPrice - padding;
+            chart.options.maxY = maxPrice + padding;
 
             // Log latest candle info
             const latest = candles[candles.length - 1];
@@ -202,12 +206,14 @@ async function main() {
                     `Confidence: ${(breakoutSignal.confidence * 100).toFixed(1)}%`
                 );
             }
-                log.log(
-                    `🚨 HIGH CONFIDENCE BREAKOUT DETECTED!\n` +
-                    `Type: ${breakoutSignal.type}\n` +
-                    `Price: ${breakoutSignal.price.toFixed(2)}\n` +
-                    `Confidence: ${(breakoutSignal.confidence * 100).toFixed(1)}%`
-                );
+                if (breakoutSignal) {
+                    log.log(
+                        `🚨 HIGH CONFIDENCE BREAKOUT DETECTED!\n` +
+                        `Type: ${breakoutSignal.type}\n` +
+                        `Price: ${breakoutSignal.price.toFixed(2)}\n` +
+                        `Confidence: ${(breakoutSignal.confidence * 100).toFixed(1)}%`
+                    );
+                }
             }
 
             // Render the screen
