@@ -18,8 +18,8 @@ async function main() {
         const ui = createUIComponents([symbol]);
         const api = new HyperliquidInfoAPI();
         const wsApi = new HyperliquidWebSocketAPI(api);
-        const chartManager = new ChartManager(ui, symbols);
-        const breakoutManager = new BreakoutManager(ui, symbols);
+        const chartManager = new ChartManager(ui, [symbol]);
+        const breakoutManager = new BreakoutManager(ui, [symbol]);
         const wsHandler = new WebSocketHandler(wsApi, ui, chartManager, breakoutManager);
 
         // Connect to WebSocket
