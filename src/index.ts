@@ -4,15 +4,18 @@ import { createUIComponents } from './ui/components';
 import { WebSocketHandler } from './services/websocket-handler';
 import { ChartManager } from './services/chart-manager';
 import { BreakoutManager } from './services/breakout-manager';
+import { promptForSymbol } from './utils/prompt';
 
 async function main() {
-    const symbols = ['BTC', 'HYPE'];
     const interval = '5m';
     const oneHourMs = 24 * 60 * 60 * 1000;
 
     try {
+        // Get symbol from user
+        const symbol = await promptForSymbol();
+        
         // Initialize components
-        const ui = createUIComponents(symbols);
+        const ui = createUIComponents([symbol]);
         const api = new HyperliquidInfoAPI();
         const wsApi = new HyperliquidWebSocketAPI(api);
         const chartManager = new ChartManager(ui, symbols);
@@ -22,10 +25,8 @@ async function main() {
         // Connect to WebSocket
         await wsApi.connect();
 
-        // Subscribe to symbols
-        for (const symbol of symbols) {
-            await wsHandler.subscribeToSymbol(symbol, interval, oneHourMs);
-        }
+        // Subscribe to symbol
+        await wsHandler.subscribeToSymbol(symbol, interval, oneHourMs);
 
         // Handle graceful shutdown
         process.on('SIGINT', async () => {

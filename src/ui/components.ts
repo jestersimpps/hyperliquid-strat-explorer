@@ -23,10 +23,10 @@ export function createUIComponents(symbols: string[]): UIComponents {
         screen: screen
     });
 
-    // Add charts for each symbol
-    const charts = new Map(symbols.map((symbol, index) => [
-        symbol,
-        grid.set(0, index * 6, 8, 6, contrib.line, {
+    // Add chart for the symbol
+    const charts = new Map([[
+        symbols[0],
+        grid.set(0, 0, 8, 12, contrib.line, {
             style: {
                 line: "yellow",
                 text: "green",
