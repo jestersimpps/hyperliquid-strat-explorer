@@ -20,8 +20,8 @@ A terminal-based trading interface for Hyperliquid with real-time charts and bre
 
 1. Clone the repository:
 ```bash
-git clone [your-repo-url]
-cd [repo-name]
+git clone https://github.com/jestersimpps/hyperliquid-strat-explorer
+cd hyperliquid-strat-explorer
 ```
 
 2. Install dependencies:

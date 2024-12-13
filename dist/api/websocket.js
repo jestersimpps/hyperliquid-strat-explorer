@@ -86,10 +86,10 @@ class HyperliquidWebSocketAPI extends events_1.EventEmitter {
     }
     formatSubscriptionMessage(type, coin, interval) {
         const subscription = {
-            method: 'subscribe',
+            method: "subscribe",
             subscription: {
                 type: type,
-            }
+            },
         };
         if (coin) {
             subscription.subscription.coin = coin;
@@ -121,46 +121,45 @@ class HyperliquidWebSocketAPI extends events_1.EventEmitter {
         const startTime = Date.now() - lookbackMs;
         const newCandles = await this.infoApi.getCandles(coin, interval, startTime);
         this.candleArrays.set(key, newCandles);
-        this.emit('candles', { coin, interval, candles: newCandles });
+        this.emit("candles", { coin, interval, candles: newCandles });
     }
     shouldRefreshCandles(candle) {
         return candle.n === 1; // Trades reset to 1 indicates a new candle
     }
     handleMessage(message) {
         if (!message.channel || !message.data) {
-            console.warn('Received malformed message:', message);
+            console.warn("Received malformed message:", message);
             return;
         }
         switch (message.channel) {
-            case 'l2Book':
-                this.emit('l2Book', message.data);
+            case "l2Book":
+                this.emit("l2Book", message.data);
                 break;
-            case 'trades':
-                this.emit('trades', message.data);
+            case "trades":
+                this.emit("trades", message.data);
                 break;
-            case 'fills':
-                this.emit('fills', message.data);
+            case "fills":
+                this.emit("fills", message.data);
                 break;
-            case 'userFunding':
-                this.emit('userFunding', message.data);
+            case "userFunding":
+                this.emit("userFunding", message.data);
                 break;
-            case 'liquidations':
-                this.emit('liquidations', message.data);
+            case "liquidations":
+                this.emit("liquidations", message.data);
                 break;
-            case 'orders':
-                this.emit('orders', message.data);
+            case "orders":
+                this.emit("orders", message.data);
                 break;
-            case 'candle':
+            case "candle":
                 if (Array.isArray(message.data)) {
                     const candles = message.data;
-                    candles.forEach(candle => this.updateCandle(candle));
+                    candles.forEach((candle) => this.updateCandle(candle));
                 }
                 else {
                     this.updateCandle(message.data);
                 }
                 break;
             default:
-                console.warn('Unknown message channel:', message.channel);
         }
     }
     getSubscriptionKey(type, coin) {
@@ -178,7 +177,6 @@ class HyperliquidWebSocketAPI extends events_1.EventEmitter {
         return new Promise((resolve, reject) => {
             try {
                 const message = this.formatSubscriptionMessage(type, coin, interval);
-                console.log("Sending subscription:", message); // Debug log
                 this.ws.send(JSON.stringify(message));
                 this.subscriptions.add(subKey);
                 resolve();
@@ -189,28 +187,28 @@ class HyperliquidWebSocketAPI extends events_1.EventEmitter {
         });
     }
     async subscribeToTicker(coin, callback) {
-        this.on('l2Book', callback);
-        await this.subscribe('l2Book', coin);
+        this.on("l2Book", callback);
+        await this.subscribe("l2Book", coin);
     }
     async subscribeToTrades(coin, callback) {
-        this.on('trades', callback);
-        await this.subscribe('trades', coin);
+        this.on("trades", callback);
+        await this.subscribe("trades", coin);
     }
     async subscribeToUserFills(callback) {
-        this.on('fills', callback);
-        await this.subscribe('fills');
+        this.on("fills", callback);
+        await this.subscribe("fills");
     }
     async subscribeToUserFunding(callback) {
-        this.on('userFunding', callback);
-        await this.subscribe('userFunding');
+        this.on("userFunding", callback);
+        await this.subscribe("userFunding");
     }
     async subscribeToLiquidations(callback) {
-        this.on('liquidations', callback);
-        await this.subscribe('liquidations');
+        this.on("liquidations", callback);
+        await this.subscribe("liquidations");
     }
     async subscribeToOrders(callback) {
-        this.on('orders', callback);
-        await this.subscribe('orders');
+        this.on("orders", callback);
+        await this.subscribe("orders");
     }
     getCandleKey(coin, interval) {
         return `${coin}:${interval}`;
@@ -222,13 +220,13 @@ class HyperliquidWebSocketAPI extends events_1.EventEmitter {
             return;
         // Check if we need to refresh the candle data
         if (this.shouldRefreshCandles(candle)) {
-            this.refreshCandleData(candle.s, candle.i, 60 * 60 * 1000).catch(error => {
-                console.error('Error refreshing candle data:', error);
+            this.refreshCandleData(candle.s, candle.i, 60 * 60 * 1000).catch((error) => {
+                console.error("Error refreshing candle data:", error);
             });
             return;
         }
         // Find and update or append the candle
-        const index = candles.findIndex(c => c.t === candle.t);
+        const index = candles.findIndex((c) => c.t === candle.t);
         if (index !== -1) {
             candles[index] = candle;
         }
@@ -237,15 +235,15 @@ class HyperliquidWebSocketAPI extends events_1.EventEmitter {
         }
         // Sort by timestamp and emit the full array
         candles.sort((a, b) => a.t - b.t);
-        this.emit('candles', { coin: candle.s, interval: candle.i, candles });
+        this.emit("candles", { coin: candle.s, interval: candle.i, candles });
     }
     async subscribeToCandles(coin, interval, lookbackMs, callback) {
         // Fetch initial candles
         await this.refreshCandleData(coin, interval, lookbackMs);
         // Set up the callback
-        this.on('candles', callback);
+        this.on("candles", callback);
         // Subscribe to live updates
-        await this.subscribe('candle', coin, interval);
+        await this.subscribe("candle", coin, interval);
     }
     close() {
         this.cleanup();
