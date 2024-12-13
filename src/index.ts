@@ -4,7 +4,7 @@ import { createUIComponents } from './ui/components';
 import { WebSocketHandler } from './services/websocket-handler';
 import { ChartManager } from './services/chart-manager';
 import { BreakoutManager } from './services/breakout-manager';
-import { promptForSymbol, promptForInterval } from './utils/prompt';
+import { promptForSymbol, promptForInterval, promptForMaxCandles } from './utils/prompt';
 import { calculateTimeframe } from './utils/time';
 
 async function main() {
