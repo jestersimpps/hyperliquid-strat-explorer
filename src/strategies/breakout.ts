@@ -145,6 +145,7 @@ export class BreakoutStrategy {
 
     const confirmations = {
       volumeIncrease: currentVolume / avgVolume,
+      volumeConfirmation: volumeConfirmation,
       priceAction: priceActionConfirmation,
       trendAlignment: trendAlignmentConfirmation,
       falseBreakoutCheck: falseBreakoutConfirmation,

@@ -13,6 +13,7 @@ export interface BreakoutSignal {
   confidence: number;  // 0-1 score based on confirmation factors
   confirmations: {
     volumeIncrease: number;      // Volume compared to average
+    volumeConfirmation: boolean; // Volume threshold met
     priceAction: boolean;        // Candle closed beyond S/R
     trendAlignment: boolean;     // Aligned with larger timeframe trend
     falseBreakoutCheck: boolean; // Price stayed beyond S/R
