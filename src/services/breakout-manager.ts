@@ -2,6 +2,7 @@ import { WsCandle } from '../types/websocket';
 import { BreakoutSignal } from '../types/breakout';
 import { BreakoutStrategy } from '../strategies/breakout';
 import { UIComponents } from '../ui/components';
+import { playSound } from '../utils/sound';
 import { updateBreakoutBox } from '../ui/components';
 
 export class BreakoutManager {
@@ -27,6 +28,7 @@ export class BreakoutManager {
         if (breakoutSignal) {
             this.breakoutSignals.set(symbol, breakoutSignal);
             if (breakoutSignal.confidence > 0.8) {
+                playSound('breakout');
                 this.ui.log.log(
                     `🚨 HIGH CONFIDENCE BREAKOUT on ${symbol}!\n` +
                     `Type: ${breakoutSignal.type} | ` +

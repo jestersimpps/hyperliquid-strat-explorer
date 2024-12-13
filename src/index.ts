@@ -1,4 +1,5 @@
 import { HyperliquidInfoAPI } from './api/info';
+import { playSound } from './utils/sound';
 import { HyperliquidWebSocketAPI } from './api/websocket';
 import { createUIComponents } from './ui/components';
 import { WebSocketHandler } from './services/websocket-handler';
@@ -9,6 +10,9 @@ import { calculateTimeframe } from './utils/time';
 
 async function main() {
     try {
+        // Play startup sound
+        playSound('startup');
+        
         // Get user inputs
         const symbol = await promptForSymbol();
         const interval = await promptForInterval();
