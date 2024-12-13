@@ -5,12 +5,18 @@ import { ChartManager } from './chart-manager';
 import { BreakoutManager } from './breakout-manager';
 
 export class WebSocketHandler {
+    private candleHistory: Map<string, WsCandle[]> = new Map();
+    private maxCandles: number;
+
     constructor(
         private wsApi: HyperliquidWebSocketAPI,
         private ui: UIComponents,
         private chartManager: ChartManager,
-        private breakoutManager: BreakoutManager
-    ) {}
+        private breakoutManager: BreakoutManager,
+        maxCandles: number
+    ) {
+        this.maxCandles = maxCandles;
+    }
 
     async subscribeToSymbol(symbol: string, interval: string, timeframe: number): Promise<void> {
         await this.wsApi.subscribeToCandles(symbol, interval, timeframe, ({ candles }) => {
@@ -30,19 +36,39 @@ export class WebSocketHandler {
                 return;
             }
 
-            // DEBUG: this.ui.log.log(`Received ${candles.length} candles for ${symbol}`);
+            // Update candle history
+            let history = this.candleHistory.get(symbol) || [];
+            
+            // Add new candles
+            for (const candle of candles) {
+                const existingIndex = history.findIndex(c => c.t === candle.t);
+                if (existingIndex !== -1) {
+                    // Update existing candle
+                    history[existingIndex] = candle;
+                } else {
+                    // Add new candle
+                    history.push(candle);
+                }
+            }
+
+            // Sort by timestamp and limit to maxCandles
+            history = history
+                .sort((a, b) => a.t - b.t)
+                .slice(-this.maxCandles);
+
+            this.candleHistory.set(symbol, history);
 
             // Update title with interval and candle count
-            this.ui.updateTitle(candles[0].i, candles.length);
+            this.ui.updateTitle(candles[0].i, history.length);
 
-            // Update chart
-            this.chartManager.updateChart(symbol, candles);
+            // Update chart with full history
+            this.chartManager.updateChart(symbol, history);
 
             // Process breakout signals
-            this.breakoutManager.processCandles(symbol, candles);
+            this.breakoutManager.processCandles(symbol, history);
 
             // Log latest candle
-            this.logLatestCandle(symbol, candles[candles.length - 1]);
+            this.logLatestCandle(symbol, history[history.length - 1]);
 
             // Render screen
             this.ui.screen.render();
