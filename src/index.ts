@@ -102,6 +102,11 @@ async function main() {
                         throw new Error(`No candle data received for ${symbol}`);
                     }
 
+                    // Verify this update is for the correct symbol
+                    if (candles[0].s !== symbol) {
+                        return; // Skip updates for other symbols
+                    }
+
                     // Prepare data for the chart
                     const times = candles.map(c => new Date(c.t).toLocaleTimeString());
                     const prices = candles.map(c => parseFloat(c.c));
