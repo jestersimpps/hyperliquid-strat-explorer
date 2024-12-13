@@ -5,7 +5,7 @@ interface Point {
   y: number;  // price
 }
 
-interface Line {
+export interface Line {
   start: Point;
   end: Point;
   strength: number;
@@ -41,7 +41,8 @@ function linearRegression(points: Point[]): Line {
     end: {
       x: points[points.length - 1].x,
       y: slope * points[points.length - 1].x + intercept
-    }
+    },
+    strength: 0.1  // Default minimal strength for regression lines
   };
 }
 
