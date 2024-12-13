@@ -99,13 +99,17 @@ async function main() {
             await wsApi.subscribeToCandles(symbol, interval, oneHourMs, ({ candles }) => {
                 try {
                     if (!candles || candles.length === 0) {
-                        throw new Error(`No candle data received for ${symbol}`);
+                        log.log(`Warning: No candle data received for ${symbol}`);
+                        return;
                     }
 
                     // Verify this update is for the correct symbol
                     if (candles[0].s !== symbol) {
-                        return; // Skip updates for other symbols
+                        log.log(`Warning: Received data for ${candles[0].s} while processing ${symbol}`);
+                        return;
                     }
+
+                    log.log(`Received ${candles.length} candles for ${symbol}`);
 
                     // Prepare data for the chart
                     const times = candles.map(c => new Date(c.t).toLocaleTimeString());
@@ -137,34 +141,40 @@ async function main() {
                         throw new Error(`Chart not found for ${symbol}`);
                     }
 
-                    // Update the chart with fresh data
-                    chart.setData([
-                        {
-                            title: `${symbol}/USD`,
-                            x: times,
-                            y: prices,
-                            style: { line: 'yellow' }
-                        },
-                        {
-                            title: 'Support',
-                            x: times,
-                            y: supportPoints,
-                            style: { line: 'green' }
-                        },
-                        {
-                            title: 'Resistance',
-                            x: times,
-                            y: resistancePoints,
-                            style: { line: 'red' }
-                        }
-                    ]);
-                    
-                    // Force chart range update
-                    chart.options.minY = minPrice - padding;
-                    chart.options.maxY = maxPrice + padding;
-                    
-                    // Force screen refresh
-                    screen.render();
+                    try {
+                        // Update the chart with fresh data
+                        chart.setData([
+                            {
+                                title: `${symbol}/USD`,
+                                x: times,
+                                y: prices,
+                                style: { line: 'yellow' }
+                            },
+                            {
+                                title: 'Support',
+                                x: times,
+                                y: supportPoints,
+                                style: { line: 'green' }
+                            },
+                            {
+                                title: 'Resistance',
+                                x: times,
+                                y: resistancePoints,
+                                style: { line: 'red' }
+                            }
+                        ]);
+                        
+                        // Force chart range update
+                        chart.options.minY = minPrice - padding;
+                        chart.options.maxY = maxPrice + padding;
+                        
+                        // Force immediate screen refresh
+                        screen.render();
+                        
+                        log.log(`Updated chart for ${symbol} with ${times.length} data points`);
+                    } catch (chartError) {
+                        log.log(`Error updating chart for ${symbol}: ${chartError}`);
+                    }
 
                     // Log latest candle info
                     const latest = candles[candles.length - 1];
