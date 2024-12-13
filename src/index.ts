@@ -50,7 +50,7 @@ async function main() {
     });
 
     // Add breakout confirmation box
-    const breakoutBox = grid.set(8, 4, 4, 8, contrib.table, {
+    const breakoutBox = grid.set(8, 6, 4, 6, contrib.table, {
         keys: true,
         fg: 'white',
         selectedFg: 'white',
@@ -61,120 +61,19 @@ async function main() {
         columnWidth: [20, 20]
     });
 
-
     // Handle exit
-    screen.key(['escape', 'q', 'C-c'], function(ch, key) {
-        return process.exit(0);
+    screen.key(['escape', 'q', 'C-c'], function() {
+        screen.destroy();
+        process.exit(0);
     });
+
     const api = new HyperliquidInfoAPI();
     const wsApi = new HyperliquidWebSocketAPI(api);
 
-    try {
-        // Connect to WebSocket
-        await wsApi.connect();
-
-        // Subscribe to BTC trades
-        // await wsApi.subscribeToTrades('BTC', (trade) => {
-        //     console.log(`[${new Date().toISOString()}] BTC Trade:`, {
-        //         price: trade.px,
-        //         size: trade.sz,
-        //         side: trade.side,
-        //         timestamp: trade.time
-        //     });
-        // });
-
-        // Subscribe to BTC order book
-        // await wsApi.subscribeToL2Book('BTC', (book) => {
-        //     console.log('Order Book Update:', book);
-        // });
-
-        // Subscribe to BTC ticker
-        // await wsApi.subscribeToTicker('BTC', (ticker) => {
-        //     console.log('Ticker Update:', ticker);
-        // });
-
-        // Subscribe to candles for each symbol
-        for (const symbol of symbols) {
-            await wsApi.subscribeToCandles(symbol, interval, oneHourMs, ({ candles }) => {
-            // Prepare data for the chart
-            const times = candles.map(c => new Date(c.t).toLocaleTimeString());
-            const prices = candles.map(c => parseFloat(c.c));
-            
-            // Calculate min and max prices with some padding
-            const minPrice = Math.min(...prices);
-            const maxPrice = Math.max(...prices);
-            const padding = (maxPrice - minPrice) * 0.1; // 10% padding
-
-            const strategy = strategies.get(symbol);
-            if (!strategy) return;
-            
-            // Calculate support and resistance lines
-            const { support, resistance } = strategy.analyzeTrendlines(candles);
-            
-            // Convert support and resistance lines to chart format
-            const supportPoints = times.map((_, i) => 
-                support.start.y + (support.end.y - support.start.y) * (i / (times.length - 1))
-            );
-            const resistancePoints = times.map((_, i) => 
-                resistance.start.y + (resistance.end.y - resistance.start.y) * (i / (times.length - 1))
-            );
-
-            const chart = charts.get(symbol);
-            if (!chart) return;
-
-            // Update the chart with price and S/R lines
-            chart.setData([
-                {
-                    title: `${symbol}/USD`,
-                    x: times,
-                    y: prices,
-                    style: { line: 'yellow' }
-                },
-                {
-                    title: 'Support',
-                    x: times,
-                    y: supportPoints,
-                    style: { line: 'green' }
-                },
-                {
-                    title: 'Resistance',
-                    x: times,
-                    y: resistancePoints,
-                    style: { line: 'red' }
-                }
-            ]);
-            
-            // Set y-axis range
-            chart.options.minY = minPrice - padding;
-            chart.options.maxY = maxPrice + padding;
-
-            // Log latest candle info
-            const latest = candles[candles.length - 1];
-            log.log(
-                `Time: ${new Date(latest.t).toISOString()} | ` +
-                `O: ${parseFloat(latest.o).toFixed(2)} | ` +
-                `H: ${parseFloat(latest.h).toFixed(2)} | ` +
-                `L: ${parseFloat(latest.l).toFixed(2)} | ` +
-                `C: ${parseFloat(latest.c).toFixed(2)} | ` +
-                `V: ${parseFloat(latest.v).toFixed(2)} | ` +
-                `Trades: ${latest.n}`
-            );
-
-            // Check for breakout using the corresponding strategy
-            const strategy = strategies.get(symbol);
-            if (!strategy) return;
-            
-            const breakoutSignal = strategy.detectBreakout(candles);
-            
-            // Update breakout signals map
-            if (breakoutSignal) {
-                breakoutSignals.set(symbol, breakoutSignal);
-            } else {
-                breakoutSignals.delete(symbol);
-            }
-            
-            // Update breakout box with active signals
-            const breakoutData = Array.from(breakoutSignals.entries()).map(([sym, signal]) => [
+    // Update breakout box function
+    const updateBreakoutBox = () => {
+        const breakoutData = Array.from(breakoutSignals.entries())
+            .map(([sym, signal]) => [
                 ['Symbol', sym],
                 ['Volume Increase', `${(signal.confirmations.volumeIncrease * 100).toFixed(1)}%`],
                 ['Price Action', signal.confirmations.priceAction ? '✓' : '✗'],
@@ -184,62 +83,147 @@ async function main() {
                 ['Confidence', `${(signal.confidence * 100).toFixed(1)}%`],
                 ['Signal Type', signal.type]
             ]).flat();
-            
-            if (breakoutData.length > 0) {
-                breakoutBox.setData({
-                    headers: ['Indicator', 'Status'],
-                    data: breakoutData
-                });
-            } else {
-                breakoutBox.setData({
-                    headers: ['Indicator', 'Status'],
-                    data: [['No active breakout signals', '']]
-                });
-            }
 
-            // If there's a high confidence breakout, log it
-            if (breakoutSignal && breakoutSignal.confidence > 0.8) {
-                log.log(
-                    `🚨 HIGH CONFIDENCE BREAKOUT DETECTED on ${symbol}!\n` +
-                    `Type: ${breakoutSignal.type}\n` +
-                    `Price: ${breakoutSignal.price.toFixed(2)}\n` +
-                    `Confidence: ${(breakoutSignal.confidence * 100).toFixed(1)}%`
-                );
-            }
-                if (breakoutSignal) {
-                    log.log(
-                        `🚨 HIGH CONFIDENCE BREAKOUT DETECTED!\n` +
-                        `Type: ${breakoutSignal.type}\n` +
-                        `Price: ${breakoutSignal.price.toFixed(2)}\n` +
-                        `Confidence: ${(breakoutSignal.confidence * 100).toFixed(1)}%`
-                    );
-                }
-            }
-
-            // Render the screen
-            screen.render();
+        breakoutBox.setData({
+            headers: ['Indicator', 'Status'],
+            data: breakoutData.length > 0 ? breakoutData : [['No active breakout signals', '']]
         });
+    };
 
-        // If you have user authentication set up
-        // await wsApi.subscribeToUserEvents((event) => {
-        //     console.log('User Event:', event);
-        // });
+    try {
+        // Connect to WebSocket
+        await wsApi.connect();
 
-        // Rest of your code for fetching account information...
+        // Subscribe to candles for each symbol
+        for (const symbol of symbols) {
+            await wsApi.subscribeToCandles(symbol, interval, oneHourMs, ({ candles }) => {
+                try {
+                    if (!candles || candles.length === 0) {
+                        throw new Error(`No candle data received for ${symbol}`);
+                    }
+
+                    // Prepare data for the chart
+                    const times = candles.map(c => new Date(c.t).toLocaleTimeString());
+                    const prices = candles.map(c => parseFloat(c.c));
+                    
+                    // Calculate min and max prices with padding
+                    const minPrice = Math.min(...prices);
+                    const maxPrice = Math.max(...prices);
+                    const padding = (maxPrice - minPrice) * 0.1;
+
+                    const strategy = strategies.get(symbol);
+                    if (!strategy) {
+                        throw new Error(`Strategy not found for ${symbol}`);
+                    }
+                    
+                    // Calculate support and resistance lines
+                    const { support, resistance } = strategy.analyzeTrendlines(candles);
+                    
+                    // Convert support and resistance lines to chart format
+                    const supportPoints = times.map((_, i) => 
+                        support.start.y + (support.end.y - support.start.y) * (i / (times.length - 1))
+                    );
+                    const resistancePoints = times.map((_, i) => 
+                        resistance.start.y + (resistance.end.y - resistance.start.y) * (i / (times.length - 1))
+                    );
+
+                    const chart = charts.get(symbol);
+                    if (!chart) {
+                        throw new Error(`Chart not found for ${symbol}`);
+                    }
+
+                    // Update the chart
+                    chart.setData([
+                        {
+                            title: `${symbol}/USD`,
+                            x: times,
+                            y: prices,
+                            style: { line: 'yellow' }
+                        },
+                        {
+                            title: 'Support',
+                            x: times,
+                            y: supportPoints,
+                            style: { line: 'green' }
+                        },
+                        {
+                            title: 'Resistance',
+                            x: times,
+                            y: resistancePoints,
+                            style: { line: 'red' }
+                        }
+                    ]);
+                    
+                    // Set y-axis range
+                    chart.options.minY = minPrice - padding;
+                    chart.options.maxY = maxPrice + padding;
+
+                    // Log latest candle info
+                    const latest = candles[candles.length - 1];
+                    log.log(
+                        `[${symbol}] ${new Date(latest.t).toLocaleTimeString()} | ` +
+                        `O: ${parseFloat(latest.o).toFixed(2)} | ` +
+                        `H: ${parseFloat(latest.h).toFixed(2)} | ` +
+                        `L: ${parseFloat(latest.l).toFixed(2)} | ` +
+                        `C: ${parseFloat(latest.c).toFixed(2)} | ` +
+                        `V: ${parseFloat(latest.v).toFixed(2)}`
+                    );
+
+                    // Check for breakout
+                    const breakoutSignal = strategy.detectBreakout(candles);
+                    
+                    // Update breakout signals
+                    if (breakoutSignal) {
+                        breakoutSignals.set(symbol, breakoutSignal);
+                        if (breakoutSignal.confidence > 0.8) {
+                            log.log(
+                                `🚨 HIGH CONFIDENCE BREAKOUT on ${symbol}!\n` +
+                                `Type: ${breakoutSignal.type} | ` +
+                                `Price: ${breakoutSignal.price.toFixed(2)} | ` +
+                                `Confidence: ${(breakoutSignal.confidence * 100).toFixed(1)}%`
+                            );
+                        }
+                    } else {
+                        breakoutSignals.delete(symbol);
+                    }
+
+                    // Update breakout box
+                    updateBreakoutBox();
+
+                    // Render screen
+                    screen.render();
+
+                } catch (error) {
+                    log.log(`Error processing ${symbol} data: ${error}`);
+                }
+            });
+        }
 
     } catch (error) {
-        console.error('Error:', error);
+        log.log(`Fatal error: ${error}`);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        screen.destroy();
+        process.exit(1);
     }
 
     // Handle graceful shutdown
-    process.on('SIGINT', () => {
-        wsApi.close();
-        screen.destroy();
-        process.exit(0);
+    process.on('SIGINT', async () => {
+        try {
+            await wsApi.close();
+            screen.destroy();
+            process.exit(0);
+        } catch (error) {
+            console.error('Error during shutdown:', error);
+            process.exit(1);
+        }
     });
 
     // Initial render
     screen.render();
 }
 
-main().catch(console.error);
+// Start the application
+main().catch(error => {
+    console.error('Unhandled error:', error);
+    process.exit(1);
+});
