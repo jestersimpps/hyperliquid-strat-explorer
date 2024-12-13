@@ -148,7 +148,7 @@ export class BreakoutStrategy {
 
     const confidence = Object.values(confirmations).filter(Boolean).length / 7;
 
-    if (confidence >= 0.7) {  // Require at least 70% confidence
+    if (confidence >= 0.1) {  // Require at least 70% confidence
       return {
         type: breakoutType,
         price: currentPrice,
