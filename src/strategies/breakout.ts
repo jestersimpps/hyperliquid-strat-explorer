@@ -123,6 +123,34 @@ export class BreakoutStrategy {
   }
 
   public analyzeTrendlines(candles: WsCandle[]) {
-    return detectSupportResistance(candles);
+    if (candles.length < 50) {
+      return detectSupportResistance(candles);
+    }
+
+    // Keep minimum of latest 50 candles
+    const minCandles = 50;
+    const latestCandles = candles.slice(-minCandles);
+    
+    // Start with full array and decrease size
+    let bestSupport = { start: { x: 0, y: 0 }, end: { x: 0, y: 0 }, strength: 0 };
+    let bestResistance = { start: { x: 0, y: 0 }, end: { x: 0, y: 0 }, strength: 0 };
+
+    for (let size = candles.length; size >= minCandles; size -= 10) {
+      const subset = candles.slice(-size);
+      const { support, resistance } = detectSupportResistance(subset);
+
+      // Update if stronger levels found
+      if (support.strength > bestSupport.strength) {
+        bestSupport = support;
+      }
+      if (resistance.strength > bestResistance.strength) {
+        bestResistance = resistance;
+      }
+    }
+
+    return {
+      support: bestSupport,
+      resistance: bestResistance
+    };
   }
 }
