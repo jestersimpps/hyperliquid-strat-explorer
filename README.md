@@ -70,6 +70,10 @@ Run in development mode:
 npm run dev
 ```
 
+## Screenshot
+
+![Hyperliquid Terminal Interface](screenshot.png)
+
 ## License
 
 [Your chosen license]
