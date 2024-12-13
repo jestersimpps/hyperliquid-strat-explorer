@@ -122,7 +122,7 @@ export class BreakoutStrategy {
     return null;
   }
 
-  public analyzeTrendlines(candles: WsCandle[]) {
+  public analyzeTrendlines(candles: WsCandle[]): { support: Line; resistance: Line } {
     if (candles.length < 50) {
       return detectSupportResistance(candles);
     }

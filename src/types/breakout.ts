@@ -1,3 +1,9 @@
+export interface Line {
+  start: { x: number; y: number };
+  end: { x: number; y: number };
+  strength: number;
+}
+
 export type SignalType = 'RESISTANCE_BREAK' | 'SUPPORT_BREAK' | 'AT_RESISTANCE' | 'AT_SUPPORT';
 
 export interface BreakoutSignal {
