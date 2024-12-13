@@ -2,8 +2,6 @@ import { HyperliquidInfoAPI } from './api/info';
 import { HyperliquidWebSocketAPI } from './api/websocket';
 import * as blessed from 'blessed';
 import * as contrib from 'blessed-contrib';
-import { detectBullishPatterns, detectBearishPatterns, formatPatternInfo, combinePatternResults } from './utils/chart-patterns';
-import { convertWsCandles } from './utils/candle-converter';
 
 async function main() {
     const symbol = 'HYPE'
@@ -44,20 +42,6 @@ async function main() {
         label: 'Latest Candle Info'
     });
 
-    // Add pattern info box
-    const patternBox = grid.set(8, 6, 4, 6, blessed.box, {
-        label: 'Pattern Analysis',
-        padding: 1,
-        border: {
-            type: 'line'
-        },
-        style: {
-            fg: 'yellow',
-            border: {
-                fg: 'green'
-            }
-        }
-    });
 
     // Handle exit
     screen.key(['escape', 'q', 'C-c'], function(ch, key) {
@@ -126,12 +110,6 @@ async function main() {
                 `V: ${parseFloat(latest.v).toFixed(2)} | ` +
                 `Trades: ${latest.n}`
             );
-
-            // Convert candles and detect patterns
-            const bullishPatterns = detectBullishPatterns(candles);
-            const bearishPatterns = detectBearishPatterns(candles);
-            const patternInfo = combinePatternResults(bullishPatterns, bearishPatterns);
-            patternBox.setContent(formatPatternInfo(patternInfo));
 
             // Render the screen
             screen.render();
