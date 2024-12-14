@@ -72,10 +72,21 @@ export function createUIComponents(symbol: string): UIComponents {
   fg: "white",
   selectedFg: "white",
   selectedBg: "blue",
-  interactive: false,
+  interactive: true,
+  mouse: true,
   label: "Breakout Analysis",
   columnSpacing: 2,
   columnWidth: [20, 20],
+  scrollable: true,
+  scrollbar: {
+    ch: ' ',
+    track: {
+      bg: 'cyan'
+    },
+    style: {
+      inverse: true
+    }
+  }
  });
 
  // Handle exit

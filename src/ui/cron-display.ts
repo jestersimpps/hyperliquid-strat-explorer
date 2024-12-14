@@ -72,11 +72,22 @@ export function createCronUIComponents(): CronUIComponents {
   fg: "white",
   selectedFg: "white",
   selectedBg: "blue",
-  interactive: false,
+  interactive: true,
+  mouse: true,
   label: "Highest Confidence Breakout",
   border: { type: "line", fg: "cyan" },
   columnSpacing: 2,
   columnWidth: [20, 20],
+  scrollable: true,
+  scrollbar: {
+    ch: ' ',
+    track: {
+      bg: 'cyan'
+    },
+    style: {
+      inverse: true
+    }
+  }
  });
 
  // Create WebSocket log (bottom right)
