@@ -25,8 +25,8 @@ class BackgroundMonitor {
  async start(): Promise<void> {
   const timeframeMs = calculateTimeframe(this.interval, this.maxCandles);
 
+  // Subscribe to candles for all symbols
   for (const symbol of this.symbols) {
-   // Subscribe to candles
    await this.wsApi.subscribeToCandles(
     symbol,
     this.interval,
@@ -40,6 +40,11 @@ class BackgroundMonitor {
 
    console.log(`Subscribed to ${symbol} ${this.interval} candles`);
   }
+
+  // Start analysis loop
+  setInterval(() => {
+   this.analyzeAllSymbols();
+  }, 1000); // Run analysis every second
  }
 
  private handleCandleUpdate(symbol: string, candles: WsCandle[]): void {
@@ -72,35 +77,36 @@ class BackgroundMonitor {
    if (latestCandle) {
     console.log(symbol, latestCandle.c);
    }
-
-   // Process breakout signals
-   const strategy = this.strategies.get(symbol);
-   if (strategy) {
-    const signal = strategy.detectBreakout(history);
-    if (signal) {
-     if (signal.confidence > 0.8) {
-      playSound("breakout");
-      console.log("\n🚨 HIGH CONFIDENCE BREAKOUT DETECTED!");
-      console.log(`Symbol: ${symbol}`);
-      console.log(`Type: ${signal.type}`);
-      console.log(`Price: ${signal.price.toFixed(2)}`);
-      console.log(`Confidence: ${(signal.confidence * 100).toFixed(1)}%`);
-      console.log("Confirmations:");
-      Object.entries(signal.confirmations).forEach(([key, value]) => {
-       if (typeof value === "boolean") {
-        console.log(`  ${key}: ${value ? "✓" : "✗"}`);
-       } else if (key === "timeElapsed") {
-        console.log(`  ${key}: ${(value / 60000).toFixed(1)}min`);
-       } else if (key === "volumeIncrease") {
-        console.log(`  ${key}: ${(value * 100).toFixed(1)}%`);
-       }
-      });
-      console.log("\n");
-     }
-    }
-   }
   } catch (error) {
    console.error(`Error processing ${symbol} data:`, error);
+  }
+ }
+
+ private analyzeAllSymbols(): void {
+  for (const [symbol, history] of this.candleHistory.entries()) {
+   const strategy = this.strategies.get(symbol);
+   if (strategy && history.length > 0) {
+    const signal = strategy.detectBreakout(history);
+    if (signal && signal.confidence > 0.8) {
+     playSound("breakout");
+     console.log("\n🚨 HIGH CONFIDENCE BREAKOUT DETECTED!");
+     console.log(`Symbol: ${symbol}`);
+     console.log(`Type: ${signal.type}`);
+     console.log(`Price: ${signal.price.toFixed(2)}`);
+     console.log(`Confidence: ${(signal.confidence * 100).toFixed(1)}%`);
+     console.log("Confirmations:");
+     Object.entries(signal.confirmations).forEach(([key, value]) => {
+      if (typeof value === "boolean") {
+       console.log(`  ${key}: ${value ? "✓" : "✗"}`);
+      } else if (key === "timeElapsed") {
+       console.log(`  ${key}: ${(value / 60000).toFixed(1)}min`);
+      } else if (key === "volumeIncrease") {
+       console.log(`  ${key}: ${(value * 100).toFixed(1)}%`);
+      }
+     });
+     console.log("\n");
+    }
+   }
   }
  }
 }
