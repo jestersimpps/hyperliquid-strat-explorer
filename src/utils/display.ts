@@ -105,15 +105,20 @@ export class DisplayManager {
         // Update breakout box with detailed info for highest confidence symbol
         const breakoutData = [
             ['Symbol', highestConfidence.symbol],
-            ['Price', highestConfidence.currentPrice.toFixed(2)],
-            ['Confidence', (highestConfidence.breakoutMetrics.confidence * 100).toFixed(1) + '%'],
-            ['Signal Type', highestConfidence.breakoutMetrics.type || 'NONE'],
-            ['Volume Increase', (highestConfidence.breakoutMetrics.volumeIncrease * 100).toFixed(1) + '%'],
-            ['Time Elapsed', (highestConfidence.breakoutMetrics.timeElapsed / 60000).toFixed(1) + 'min']
+            ['Volume Increase', `${(highestConfidence.breakoutMetrics.volumeIncrease * 100).toFixed(1)}%`],
+            ['Volume Confirmation', highestConfidence.breakoutMetrics.volumeConfirmation ? '✓' : '✗'],
+            ['Price Action', highestConfidence.breakoutMetrics.priceAction ? '✓' : '✗'],
+            ['Trend Alignment', highestConfidence.breakoutMetrics.trendAlignment ? '✓' : '✗'],
+            ['False Breakout Check', highestConfidence.breakoutMetrics.falseBreakoutCheck ? '✓' : '✗'],
+            ['Multi-Timeframe', highestConfidence.breakoutMetrics.multiTimeframe ? '✓' : '✗'],
+            ['Volatility Check', highestConfidence.breakoutMetrics.volatilityCheck ? '✓' : '✗'],
+            ['Time Elapsed', `${(highestConfidence.breakoutMetrics.timeElapsed / 60000).toFixed(1)}min`],
+            ['Confidence', `${(highestConfidence.breakoutMetrics.confidence * 100).toFixed(1)}%`],
+            ['Signal Type', highestConfidence.breakoutMetrics.type || 'NONE']
         ];
 
         this.breakoutBox.setData({
-            headers: ['Metric', 'Value'],
+            headers: ['Indicator', 'Status'],
             data: breakoutData
         });
 
