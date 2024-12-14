@@ -118,7 +118,7 @@ async function main() {
         
         // Sort by 24h volume and take top 10
         const topSymbols = assetCtxs
-            .sort((a, b) => parseFloat(b.dailyVolume) - parseFloat(a.dailyVolume))
+            .sort((a, b) => parseFloat(b.dayNtlVlm) - parseFloat(a.dayNtlVlm))
             .slice(0, 10)
             .map(asset => asset.name);
 
