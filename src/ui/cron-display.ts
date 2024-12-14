@@ -32,8 +32,8 @@ export function createCronUIComponents(): CronUIComponents {
   screen: screen,
  });
 
- // Create the chart (top)
- const chart = grid.set(0, 0, 8, 12, contrib.line, {
+ // Create the chart (left side)
+ const chart = grid.set(0, 0, 8, 8, contrib.line, {
   style: {
    line: "yellow",
    text: "green",
@@ -51,8 +51,8 @@ export function createCronUIComponents(): CronUIComponents {
   maxY: 0,
  });
 
- // Create the table (bottom left)
- const table = grid.set(8, 0, 4, 6, contrib.table, {
+ // Create the table (bottom)
+ const table = grid.set(8, 0, 4, 8, contrib.table, {
   keys: true,
   fg: "white",
   selectedFg: "white",
@@ -66,8 +66,8 @@ export function createCronUIComponents(): CronUIComponents {
   columnWidth: [10, 10, 12, 10, 12, 20],
  });
 
- // Create breakout box (bottom middle)
- const breakoutBox = grid.set(8, 6, 4, 3, contrib.table, {
+ // Create breakout box (full height right side)
+ const breakoutBox = grid.set(0, 8, 12, 4, contrib.table, {
   keys: true,
   fg: "white",
   selectedFg: "white",
@@ -93,8 +93,8 @@ export function createCronUIComponents(): CronUIComponents {
   focusable: false
  });
 
- // Create WebSocket log (bottom right)
- const log = grid.set(8, 9, 4, 3, contrib.log, {
+ // Create WebSocket log (bottom)
+ const log = grid.set(8, 0, 4, 8, contrib.log, {
   fg: "green",
   selectedFg: "green",
   label: "WebSocket Activity",
