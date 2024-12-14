@@ -46,6 +46,10 @@ You will be prompted to:
 2. Select a candle interval (e.g., 5m, 15m, 1h)
 3. Set maximum number of candles to display (default: 200)
 
+For the cron script (`npm run cron`), you will be prompted to:
+1. Select a candle interval (e.g., 5m, 15m, 1h)
+2. Enter number of top symbols to monitor (default: 30)
+
 ### Controls
 
 - `q`, `Esc`, or `Ctrl+C` to exit
@@ -89,12 +93,13 @@ npm run dev
 ![Market Monitor Interface](cron.png)
 
 The cron script (`npm run cron`) provides a market-wide monitoring interface that:
-- Tracks the top 30 coins by 24h volume
+- Tracks the top X coins by 24h volume (configurable via prompt)
 - Displays real-time market statistics including price, volume, and 24h change
 - Shows breakout signals with confidence scoring
 - Includes a detailed analysis panel for the highest confidence breakout
 - Features a price chart that automatically focuses on the most promising setup
 - Logs WebSocket activity for monitoring data flow
+- Uses a functional component architecture for better maintainability
 
 This is particularly useful for identifying trading opportunities across the entire market without having to manually watch individual pairs.
 
