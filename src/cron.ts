@@ -78,53 +78,53 @@ class BackgroundMonitor {
  }
 
  private logMarketStats(): void {
+  // First calculate all metrics
+  const marketMetrics = Array.from(this.candleHistory.entries())
+   .filter(([_, history]) => history.length > 0)
+   .map(([symbol, history]) => {
+    const currentCandle = history[history.length - 1];
+    const currentPrice = parseFloat(currentCandle.c);
+    const dayAgoCandle = history[0];
+    const prevDayPrice = parseFloat(dayAgoCandle.c);
+    const priceChange = ((currentPrice - prevDayPrice) / prevDayPrice) * 100;
+    const volumeUSD = parseFloat(currentCandle.v) * currentPrice;
+    const lastUpdate = new Date(currentCandle.t).toLocaleTimeString();
+    const breakoutMetrics = this.analyzeSymbol(symbol, history);
+
+    return {
+     symbol,
+     currentPrice,
+     priceChange,
+     volumeUSD,
+     lastUpdate,
+     breakoutMetrics,
+     // Pre-format display strings
+     symbolPad: symbol.padEnd(9),
+     pricePad: currentPrice.toFixed(2).padEnd(11),
+     changePad: (priceChange >= 0 ? "+" : "") + priceChange.toFixed(2).padEnd(8) + "%",
+     volumePad: (volumeUSD / 1000000).toFixed(2).padEnd(10) + "M",
+     confidencePad: (breakoutMetrics.confidence * 100).toFixed(1).padEnd(8) + "%",
+     signalPad: (breakoutMetrics.type || "NONE").padEnd(10)
+    };
+   })
+   .sort((a, b) => a.symbol.localeCompare(b.symbol));
+
+  // Then display the results
   console.clear();
   console.log("\n📊 Market Statistics");
   console.log("━".repeat(60));
   console.log("Symbol    Price      24h Change    Volume    Confidence  Signal    Last Update");
   console.log("━".repeat(80));
 
-  // Convert map entries to array and sort by volume
-  const entries = Array.from(this.candleHistory.entries())
-   .filter(([_, history]) => history.length > 0)
-   .map(([symbol, history]) => {
-    const currentCandle = history[history.length - 1];
-    return {
-     symbol,
-     currentCandle,
-     dayAgoCandle: history[0],
-     volumeUSD: parseFloat(currentCandle.v) * parseFloat(currentCandle.c),
-    };
-   })
-   .sort((a, b) => a.symbol.localeCompare(b.symbol)); // Sort by symbol name
-
-  // Display sorted entries
-  for (const entry of entries) {
-   const currentPrice = parseFloat(entry.currentCandle.c);
-   const prevDayPrice = parseFloat(entry.dayAgoCandle.c);
-   const priceChange = ((currentPrice - prevDayPrice) / prevDayPrice) * 100;
-   const lastUpdate = new Date(entry.currentCandle.t).toLocaleTimeString();
-
-   // Format the output line
-   const symbolPad = entry.symbol.padEnd(9);
-   const pricePad = currentPrice.toFixed(2).padEnd(11);
-   const changePad =
-    (priceChange >= 0 ? "+" : "") + priceChange.toFixed(2).padEnd(8) + "%";
-   const volumePad = (entry.volumeUSD / 1000000).toFixed(2).padEnd(10) + "M";
-
-   const breakoutMetrics = this.analyzeSymbol(entry.symbol, this.candleHistory.get(entry.symbol) || []);
-   const confidencePad = (breakoutMetrics.confidence * 100).toFixed(1).padEnd(8) + "%";
-   const signalPad = (breakoutMetrics.type || "NONE").padEnd(10);
-   
-   // Add visual indicator for high confidence signals
-   const confidenceStr = breakoutMetrics.confidence > 0.8 
-     ? `\x1b[32m${confidencePad}\x1b[0m` // Green for high confidence
-     : breakoutMetrics.confidence > 0.5 
-       ? `\x1b[33m${confidencePad}\x1b[0m` // Yellow for medium confidence
-       : confidencePad;
+  for (const metric of marketMetrics) {
+   const confidenceStr = metric.breakoutMetrics.confidence > 0.8 
+     ? `\x1b[32m${metric.confidencePad}\x1b[0m` // Green for high confidence
+     : metric.breakoutMetrics.confidence > 0.5 
+       ? `\x1b[33m${metric.confidencePad}\x1b[0m` // Yellow for medium confidence
+       : metric.confidencePad;
 
    console.log(
-    `${symbolPad}${pricePad}${changePad}    ${volumePad}    ${confidenceStr}${signalPad}${lastUpdate}`
+    `${metric.symbolPad}${metric.pricePad}${metric.changePad}    ${metric.volumePad}    ${confidenceStr}${metric.signalPad}${metric.lastUpdate}`
    );
   }
  }
