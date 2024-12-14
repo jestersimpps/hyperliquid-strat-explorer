@@ -1,10 +1,10 @@
-import * as blessed from "blessed";
+import { Screen, Widgets } from "blessed";
 import * as contrib from "blessed-contrib";
 import { BreakoutSignal } from "./breakout";
 import { WsCandle } from "./websocket";
 
 export interface BaseUIComponents {
-  screen: blessed.Widgets.Screen;
+  screen: Screen;
   log: contrib.Widgets.LogElement;
   breakoutBox: contrib.Widgets.TableElement;
   render: () => void;
