@@ -5,9 +5,8 @@ const websocket_1 = require("./api/websocket");
 const breakout_1 = require("./strategies/breakout");
 const sound_1 = require("./utils/sound");
 const time_1 = require("./utils/time");
-const display_1 = require("./utils/display");
+const cron_display_1 = require("./ui/cron-display");
 const prompt_1 = require("./utils/prompt");
-const TOP_X = 30;
 class BackgroundMonitor {
     wsApi;
     symbols;
@@ -21,7 +20,7 @@ class BackgroundMonitor {
         this.symbols = symbols;
         this.interval = interval;
         this.maxCandles = maxCandles;
-        this.display = new display_1.DisplayManager();
+        this.display = (0, cron_display_1.createCronUIComponents)();
         // Initialize strategies and trade history
         this.symbols.forEach((symbol) => {
             this.strategies.set(symbol, new breakout_1.BreakoutStrategy());
@@ -44,8 +43,9 @@ class BackgroundMonitor {
             });
             //  console.log(`Subscribed to ${symbol} ${this.interval} candles`);
         }
-        // Start analysis loop
+        // Start analysis loop for market stats
         setInterval(() => {
+            this.updateBreakoutBox();
             this.logMarketStats();
         }, 1000); // Run analysis every second
     }
@@ -75,9 +75,8 @@ class BackgroundMonitor {
             console.error(`Error processing ${symbol} data:`, error);
         }
     }
-    logMarketStats() {
-        // First calculate all metrics
-        const marketMetrics = Array.from(this.candleHistory.entries())
+    getMarketMetrics() {
+        return Array.from(this.candleHistory.entries())
             .filter(([_, history]) => history.length > 0)
             .map(([symbol, history]) => {
             const currentCandle = history[history.length - 1];
@@ -103,6 +102,9 @@ class BackgroundMonitor {
             };
         })
             .sort((a, b) => b.breakoutMetrics.confidence - a.breakoutMetrics.confidence);
+    }
+    logMarketStats() {
+        const marketMetrics = this.getMarketMetrics();
         // Update the display
         this.display.updateTable(marketMetrics);
         // Update chart with highest confidence symbol
@@ -114,6 +116,14 @@ class BackgroundMonitor {
             }
         }
         this.display.render();
+    }
+    updateBreakoutBox() {
+        const marketMetrics = this.getMarketMetrics();
+        if (marketMetrics.length > 0) {
+            const highestConfidence = marketMetrics[0];
+            this.display.updateBreakoutBox(highestConfidence);
+            this.display.render();
+        }
     }
     analyzeSymbol(symbol, history) {
         const strategy = this.strategies.get(symbol);
@@ -155,6 +165,7 @@ async function main() {
         // Get user inputs
         const interval = await (0, prompt_1.promptForInterval)();
         const maxCandles = 300; // Adjust history size as needed
+        const topX = await (0, prompt_1.promptForTopSymbols)();
         // Initialize display
         console.log("Initializing display...");
         // Initialize APIs
@@ -167,7 +178,7 @@ async function main() {
         // Sort by 24h volume and take top 10
         const topSymbols = assetCtxs
             .sort((a, b) => parseFloat(b.dayNtlVlm) - parseFloat(a.dayNtlVlm))
-            .slice(0, TOP_X)
+            .slice(0, topX)
             .map((asset, i) => meta.universe[i].name);
         console.log("Top symbols by 24h volume:", topSymbols.join(", "));
         // Create monitor

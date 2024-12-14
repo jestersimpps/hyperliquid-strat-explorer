@@ -36,6 +36,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.promptForSymbol = promptForSymbol;
 exports.promptForInterval = promptForInterval;
 exports.promptForMaxCandles = promptForMaxCandles;
+exports.promptForTopSymbols = promptForTopSymbols;
 const readline = __importStar(require("readline"));
 async function promptForSymbol() {
     const rl = readline.createInterface({
@@ -71,6 +72,19 @@ async function promptForMaxCandles() {
             rl.close();
             const maxCandles = parseInt(answer, 10);
             resolve(isNaN(maxCandles) ? 200 : maxCandles);
+        });
+    });
+}
+async function promptForTopSymbols() {
+    const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+    });
+    return new Promise((resolve) => {
+        rl.question('Enter number of top symbols to monitor (default: 30): ', (answer) => {
+            rl.close();
+            const topX = parseInt(answer, 10);
+            resolve(isNaN(topX) ? 30 : topX);
         });
     });
 }

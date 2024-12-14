@@ -5,7 +5,7 @@ import { BreakoutStrategy } from "./strategies/breakout";
 import { playSound } from "./utils/sound";
 import { calculateTimeframe } from "./utils/time";
 import { createCronUIComponents } from "./ui/cron-display";
-import { promptForInterval } from "./utils/prompt";
+import { promptForInterval, promptForTopSymbols } from "./utils/prompt";
 
 class BackgroundMonitor {
  private candleHistory: Map<string, WsCandle[]> = new Map();
@@ -57,13 +57,9 @@ class BackgroundMonitor {
 
   // Start analysis loop for market stats
   setInterval(() => {
+   this.updateBreakoutBox();
    this.logMarketStats();
   }, 1000); // Run analysis every second
-
-  // Start breakout box update loop
-  setInterval(() => {
-   this.updateBreakoutBox();
-  }, 100); // Update breakout box more frequently
  }
 
  private handleCandleUpdate(symbol: string, candles: WsCandle[]): void {
@@ -129,7 +125,7 @@ class BackgroundMonitor {
 
  private logMarketStats(): void {
   const marketMetrics = this.getMarketMetrics();
-  
+
   // Update the display
   this.display.updateTable(marketMetrics);
 

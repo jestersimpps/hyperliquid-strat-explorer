@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.BreakoutManager = void 0;
 const breakout_1 = require("../strategies/breakout");
 const sound_1 = require("../utils/sound");
-const components_1 = require("../ui/components");
+const symbol_display_1 = require("../ui/symbol-display");
 class BreakoutManager {
     ui;
     strategies;
@@ -32,7 +32,7 @@ class BreakoutManager {
         else {
             this.breakoutSignals.delete(symbol);
         }
-        (0, components_1.updateBreakoutBox)(this.ui.breakoutBox, this.breakoutSignals);
+        (0, symbol_display_1.updateBreakoutBox)(this.ui.breakoutBox, this.breakoutSignals);
     }
 }
 exports.BreakoutManager = BreakoutManager;
