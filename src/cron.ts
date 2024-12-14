@@ -44,6 +44,7 @@ class BackgroundMonitor {
 
   // Start analysis loop
   setInterval(() => {
+   this.logMarketStats();
    this.analyzeAllSymbols();
   }, 1000); // Run analysis every second
  }
@@ -80,51 +81,48 @@ class BackgroundMonitor {
  private logMarketStats(): void {
   console.clear();
   console.log("\n📊 Market Statistics");
-  console.log("━".repeat(50));
+  console.log("━".repeat(60));
   console.log("Symbol    Price      24h Change    Volume    Last Update");
-  console.log("━".repeat(50));
+  console.log("━".repeat(60));
 
   // Convert map entries to array and sort by volume
   const entries = Array.from(this.candleHistory.entries())
-    .filter(([_, history]) => history.length > 0)
-    .map(([symbol, history]) => {
-      const currentCandle = history[history.length - 1];
-      return {
-        symbol,
-        currentCandle,
-        dayAgoCandle: history[0],
-        volumeUSD: parseFloat(currentCandle.v) * parseFloat(currentCandle.c)
-      };
-    })
-    .sort((a, b) => a.symbol.localeCompare(b.symbol)); // Sort by symbol name
+   .filter(([_, history]) => history.length > 0)
+   .map(([symbol, history]) => {
+    const currentCandle = history[history.length - 1];
+    return {
+     symbol,
+     currentCandle,
+     dayAgoCandle: history[0],
+     volumeUSD: parseFloat(currentCandle.v) * parseFloat(currentCandle.c),
+    };
+   })
+   .sort((a, b) => a.symbol.localeCompare(b.symbol)); // Sort by symbol name
 
   // Display sorted entries
   for (const entry of entries) {
-    const currentPrice = parseFloat(entry.currentCandle.c);
-    const prevDayPrice = parseFloat(entry.dayAgoCandle.c);
-    const priceChange = ((currentPrice - prevDayPrice) / prevDayPrice) * 100;
-    const lastUpdate = new Date(entry.currentCandle.t).toLocaleTimeString();
+   const currentPrice = parseFloat(entry.currentCandle.c);
+   const prevDayPrice = parseFloat(entry.dayAgoCandle.c);
+   const priceChange = ((currentPrice - prevDayPrice) / prevDayPrice) * 100;
+   const lastUpdate = new Date(entry.currentCandle.t).toLocaleTimeString();
 
-    // Format the output line
-    const symbolPad = entry.symbol.padEnd(9);
-    const pricePad = currentPrice.toFixed(2).padEnd(11);
-    const changePad = (priceChange >= 0 ? "+" : "") + 
-      priceChange.toFixed(2).padEnd(8) + "%";
-    const volumePad = (entry.volumeUSD / 1000000).toFixed(2).padEnd(10) + "M";
+   // Format the output line
+   const symbolPad = entry.symbol.padEnd(9);
+   const pricePad = currentPrice.toFixed(2).padEnd(11);
+   const changePad =
+    (priceChange >= 0 ? "+" : "") + priceChange.toFixed(2).padEnd(8) + "%";
+   const volumePad = (entry.volumeUSD / 1000000).toFixed(2).padEnd(10) + "M";
 
-    console.log(
-      `${symbolPad}${pricePad}${changePad}    ${volumePad}    ${lastUpdate}`
-    );
+   console.log(
+    `${symbolPad}${pricePad}${changePad}    ${volumePad}    ${lastUpdate}`
+   );
   }
  }
 
  private analyzeAllSymbols(): void {
-  this.logMarketStats();
-  
   for (const [symbol, history] of this.candleHistory.entries()) {
    const strategy = this.strategies.get(symbol);
    if (strategy && history.length > 0) {
-
     const signal = strategy.detectBreakout(history);
     if (signal && signal.confidence > 0.8) {
      playSound("breakout");
