@@ -92,11 +92,10 @@ class BackgroundMonitor {
       return {
         symbol,
         currentCandle,
-        dayAgoCandle: history[0],
-        volumeUSD: parseFloat(currentCandle.v) * parseFloat(currentCandle.c)
+        dayAgoCandle: history[0]
       };
     })
-    .sort((a, b) => b.volumeUSD - a.volumeUSD); // Sort by USD volume descending
+    .sort((a, b) => a.symbol.localeCompare(b.symbol)); // Sort by symbol name
 
   // Display sorted entries
   for (const entry of entries) {
