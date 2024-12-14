@@ -3,7 +3,7 @@ import * as contrib from "blessed-contrib";
 import { BreakoutSignal } from "../types/breakout";
 import { BaseUIComponents, CandleData } from "../types/ui";
 import { createBaseScreen, createGrid, getDefaultChartConfig, setupExitHandler } from "../utils/ui-config";
-import { updateBreakoutBox, updateChart } from "./shared-updater";
+import { updateBreakoutBox } from "./shared-updater";
 
 export interface UIComponents extends BaseUIComponents {
  screen: blessed.Widgets.Screen;
@@ -100,7 +100,26 @@ export function createUIComponents(symbol: string): UIComponents {
   updateChart: (symbol: string, data) => {
    const chart = charts.get(symbol);
    if (chart) {
-    chartManager.updateChartWithData(symbol, data);
+    chart.setData([
+     {
+       title: "Price",
+       x: data.times,
+       y: data.prices,
+       style: { line: "yellow" }
+     },
+     {
+       title: "Support",
+       x: data.times,
+       y: data.support,
+       style: { line: "green" }
+     },
+     {
+       title: "Resistance", 
+       x: data.times,
+       y: data.resistance,
+       style: { line: "red" }
+     }
+    ]);
    }
   },
  };
