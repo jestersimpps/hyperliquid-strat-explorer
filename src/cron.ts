@@ -112,15 +112,15 @@ async function main() {
         const api = new HyperliquidInfoAPI();
         const wsApi = new HyperliquidWebSocketAPI(api);
 
-        // Fetch top symbols by volume
+        // Fetch market data
         console.log('Fetching market data...');
-        const markets = await api.getMarkets();
+        const [meta, assetCtxs] = await api.getMetaAndAssetCtxs();
         
-        // Sort markets by 24h volume and take top 10
-        const topSymbols = markets
-            .sort((a, b) => parseFloat(b.volume24h) - parseFloat(a.volume24h))
+        // Sort by 24h volume and take top 10
+        const topSymbols = assetCtxs
+            .sort((a, b) => parseFloat(b.context.dailyVolume) - parseFloat(a.context.dailyVolume))
             .slice(0, 10)
-            .map(market => market.coin);
+            .map(asset => asset.name);
 
         console.log('Top 10 symbols by 24h volume:', topSymbols.join(', '));
 
@@ -134,7 +134,7 @@ async function main() {
         await monitor.start();
 
         console.log('Background monitor started successfully');
-        console.log(`Monitoring symbols: ${symbols.join(', ')}`);
+        console.log(`Monitoring symbols: ${topSymbols.join(', ')}`);
         console.log(`Interval: ${interval}`);
         console.log(`History size: ${maxCandles} candles`);
 
