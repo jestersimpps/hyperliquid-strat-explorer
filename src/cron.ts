@@ -4,6 +4,7 @@ import { WsCandle } from "./types/websocket";
 import { BreakoutStrategy } from "./strategies/breakout";
 import { playSound } from "./utils/sound";
 import { calculateTimeframe } from "./utils/time";
+import Table from 'cli-table3';
 
 class BackgroundMonitor {
  private candleHistory: Map<string, WsCandle[]> = new Map();
@@ -112,21 +113,41 @@ class BackgroundMonitor {
   // Then display the results
   console.clear();
   console.log("\n📊 Market Statistics");
-  console.log("━".repeat(60));
-  console.log("Symbol    Price      24h Change    Volume    Confidence  Signal    Last Update");
-  console.log("━".repeat(80));
+
+  const table = new Table({
+    head: ['Symbol', 'Price', '24h Change', 'Volume', 'Confidence', 'Signal', 'Last Update'],
+    style: {
+      head: ['cyan'],
+      border: ['grey']
+    },
+    chars: {
+      'top': '═', 'top-mid': '╤', 'top-left': '╔', 'top-right': '╗',
+      'bottom': '═', 'bottom-mid': '╧', 'bottom-left': '╚', 'bottom-right': '╝',
+      'left': '║', 'left-mid': '╟', 'mid': '─', 'mid-mid': '┼',
+      'right': '║', 'right-mid': '╢', 'middle': '│'
+    }
+  });
 
   for (const metric of marketMetrics) {
-   const confidenceStr = metric.breakoutMetrics.confidence > 0.8 
-     ? `\x1b[32m${metric.confidencePad}\x1b[0m` // Green for high confidence
-     : metric.breakoutMetrics.confidence > 0.5 
-       ? `\x1b[33m${metric.confidencePad}\x1b[0m` // Yellow for medium confidence
-       : metric.confidencePad;
+    const confidenceValue = (metric.breakoutMetrics.confidence * 100).toFixed(1) + '%';
+    const confidenceStr = metric.breakoutMetrics.confidence > 0.8 
+      ? `\x1b[32m${confidenceValue}\x1b[0m` // Green for high confidence
+      : metric.breakoutMetrics.confidence > 0.5 
+        ? `\x1b[33m${confidenceValue}\x1b[0m` // Yellow for medium confidence
+        : confidenceValue;
 
-   console.log(
-    `${metric.symbolPad}${metric.pricePad}${metric.changePad}    ${metric.volumePad}    ${confidenceStr}${metric.signalPad}${metric.lastUpdate}`
-   );
+    table.push([
+      metric.symbol,
+      metric.currentPrice.toFixed(2),
+      (metric.priceChange >= 0 ? '+' : '') + metric.priceChange.toFixed(2) + '%',
+      (metric.volumeUSD / 1000000).toFixed(2) + 'M',
+      confidenceStr,
+      metric.breakoutMetrics.type || 'NONE',
+      metric.lastUpdate
+    ]);
   }
+
+  console.log(table.toString());
  }
 
  private analyzeSymbol(symbol: string, history: WsCandle[]): { 
