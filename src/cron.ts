@@ -187,8 +187,8 @@ async function main() {
   // Clear console
   console.clear();
 
-  // Configuration
-  const interval = "5m"; // Adjust interval as needed
+  // Get user inputs
+  const interval = await promptForInterval();
   const maxCandles = 300; // Adjust history size as needed
 
   // Initialize display
