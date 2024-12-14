@@ -1,9 +1,9 @@
 import { WsCandle } from '../types/websocket';
 import { BreakoutSignal } from '../types/breakout';
 import { BreakoutStrategy } from '../strategies/breakout';
-import { UIComponents } from '../ui/components';
+import { UIComponents } from '../ui/symbol-display';
 import { playSound } from '../utils/sound';
-import { updateBreakoutBox } from '../ui/components';
+import { updateBreakoutBox } from '../ui/symbol-display';
 
 export class BreakoutManager {
     private strategies: Map<string, BreakoutStrategy>;

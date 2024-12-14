@@ -1,6 +1,6 @@
 import { HyperliquidWebSocketAPI } from '../api/websocket';
 import { WsCandle } from '../types/websocket';
-import { UIComponents } from '../ui/components';
+import { UIComponents } from '../ui/symbol-display';
 import { ChartManager } from './chart-manager';
 import { BreakoutManager } from './breakout-manager';
 

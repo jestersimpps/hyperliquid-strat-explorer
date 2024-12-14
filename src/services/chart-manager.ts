@@ -1,5 +1,5 @@
 import { WsCandle } from '../types/websocket';
-import { UIComponents } from '../ui/components';
+import { UIComponents } from '../ui/symbol-display';
 import { BreakoutStrategy } from '../strategies/breakout';
 
 export class ChartManager {

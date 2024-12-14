@@ -1,7 +1,7 @@
 import { HyperliquidInfoAPI } from './api/info';
 import { playSound } from './utils/sound';
 import { HyperliquidWebSocketAPI } from './api/websocket';
-import { createUIComponents } from './ui/components';
+import { createUIComponents } from './ui/symbol-display';
 import { WebSocketHandler } from './services/websocket-handler';
 import { ChartManager } from './services/chart-manager';
 import { BreakoutManager } from './services/breakout-manager';
