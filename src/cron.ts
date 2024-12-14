@@ -108,7 +108,7 @@ class BackgroundMonitor {
      signalPad: (breakoutMetrics.type || "NONE").padEnd(10)
     };
    })
-   .sort((a, b) => a.symbol.localeCompare(b.symbol));
+   .sort((a, b) => b.breakoutMetrics.confidence - a.breakoutMetrics.confidence);
 
   // Then display the results
   console.clear();
