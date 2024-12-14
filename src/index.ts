@@ -20,7 +20,7 @@ async function main() {
         const timeframeMs = calculateTimeframe(interval, maxCandles);
         
         // Initialize components
-        const ui = createUIComponents([symbol]);
+        const ui = createUIComponents(symbol);
         const api = new HyperliquidInfoAPI();
         const wsApi = new HyperliquidWebSocketAPI(api);
         const chartManager = new ChartManager(ui, [symbol]);
