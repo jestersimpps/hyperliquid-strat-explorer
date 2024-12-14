@@ -7,7 +7,7 @@
      screen: blessed.Widgets.Screen;
      table: contrib.Widgets.TableElement;
      chart: contrib.Widgets.LineElement;
-     wsLog: contrib.Widgets.LogElement;
+     log: contrib.Widgets.LogElement;
      breakoutBox: contrib.Widgets.TableElement;
      strategies: Map<string, BreakoutStrategy>;
      render: () => void;
@@ -57,7 +57,7 @@
          selectedFg: 'white',
          selectedBg: 'blue',
          interactive: false,
-         label: 'Market Statistics',
+         label: 'Log',
          width: '50%',
          height: '100%',
          border: {type: "line", fg: "cyan"},
@@ -79,7 +79,7 @@
      });
 
      // Create WebSocket log (bottom right)
-     const wsLog = grid.set(8, 9, 4, 3, contrib.log, {
+     const log = grid.set(8, 9, 4, 3, contrib.log, {
          fg: "green",
          selectedFg: "green",
          label: "WebSocket Activity",
@@ -156,11 +156,7 @@
              chart.options.maxY = maxPrice + padding;
 
          } catch (error) {
-             wsLog.log(`Error updating chart for ${symbol}: ${error}`);
-         }
-
-         getSignal(symbol: string): BreakoutSignal | null {
-             return this.breakoutSignals.get(symbol) || null;
+          log.log(`Error updating chart for ${symbol}: ${error}`);
          }
      }
 
@@ -189,13 +185,13 @@
          screen,
          table,
          chart,
-         wsLog,
+         log,
          breakoutBox,
          strategies,
          render: () => screen.render(),
          updateTable,
          updateChart,
-         logWebSocketActivity: (message: string) => wsLog.log(message),
+         logWebSocketActivity: (message: string) => log.log(message),
          updateBreakoutBox
      };
  }
