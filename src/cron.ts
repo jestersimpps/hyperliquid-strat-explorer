@@ -66,7 +66,11 @@ class BackgroundMonitor {
 
             this.candleHistory.set(symbol, history);
 
-            console.log(symbol,candles[candles.length-1].c)
+            // Log latest candle data if available
+            const latestCandle = candles[candles.length-1];
+            if (latestCandle) {
+                console.log(symbol, latestCandle.c);
+            }
 
             // Process breakout signals
             const strategy = this.strategies.get(symbol);
