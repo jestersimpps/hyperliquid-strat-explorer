@@ -5,7 +5,6 @@ import { Line } from "../utils/support-resistance";
 
 export class BreakoutStrategy {
   private readonly volumeThreshold = 1.5; // 150% of average volume
-  private readonly priceConfirmationPeriods = 3; // TODO: Number of candles to confirm breakout
   private breakoutTimestamps: Map<string, number> = new Map(); // Store breakout timestamps
 
   constructor() {

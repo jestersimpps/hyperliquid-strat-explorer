@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const info_1 = require("./api/info");
+const sound_1 = require("./utils/sound");
 const websocket_1 = require("./api/websocket");
 const components_1 = require("./ui/components");
 const websocket_handler_1 = require("./services/websocket-handler");
@@ -10,6 +11,8 @@ const prompt_1 = require("./utils/prompt");
 const time_1 = require("./utils/time");
 async function main() {
     try {
+        // Play startup sound
+        (0, sound_1.playSound)('startup');
         // Get user inputs
         const symbol = await (0, prompt_1.promptForSymbol)();
         const interval = await (0, prompt_1.promptForInterval)();
