@@ -6,7 +6,7 @@ import { createBaseScreen, createGrid, getDefaultChartConfig, setupExitHandler }
 import { updateBreakoutBox, updateChart } from "./shared-updater";
 
 export interface UIComponents extends BaseUIComponents {
- screen: typeof blessed.screen;
+ screen: blessed.Widgets.Screen;
  charts: Map<string, contrib.Widgets.LineElement>;
  log: contrib.Widgets.LogElement;
  breakoutBox: contrib.Widgets.TableElement;

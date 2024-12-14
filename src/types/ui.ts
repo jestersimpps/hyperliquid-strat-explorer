@@ -1,7 +1,7 @@
 import * as blessed from "blessed";
 import * as contrib from "blessed-contrib";
 export interface BaseUIComponents {
-  screen: typeof blessed.screen;
+  screen: blessed.Widgets.Screen;
   log: contrib.Widgets.LogElement;
   breakoutBox: contrib.Widgets.TableElement;
 }
