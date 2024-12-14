@@ -42,7 +42,7 @@ export class ChartManager {
 
             chart.setData([
                 {
-                    title: `${symbol}/USD`,
+                    title: `${symbol}/USD - ${candles[0].i} - ${candles.length} candles`,
                     x: times,
                     y: prices,
                     style: { line: 'yellow' }
@@ -63,8 +63,38 @@ export class ChartManager {
             
             chart.options.minY = minPrice - padding;
             chart.options.maxY = maxPrice + padding;
-            
-            // this.ui.log.log(`Updated chart for ${symbol} with ${times.length} data points`);
+        } catch (error) {
+            this.ui.log.log(`Error updating chart for ${symbol}: ${error}`);
+        }
+    }
+
+    updateChartWithData(symbol: string, data: { times: string[]; prices: number[]; support: number[]; resistance: number[] }): void {
+        try {
+            const chart = this.ui.charts.get(symbol);
+            if (!chart) {
+                throw new Error(`Chart not found for ${symbol}`);
+            }
+
+            chart.setData([
+                {
+                    title: "Price",
+                    x: data.times,
+                    y: data.prices,
+                    style: { line: "yellow" }
+                },
+                {
+                    title: "Support",
+                    x: data.times,
+                    y: data.support,
+                    style: { line: "green" }
+                },
+                {
+                    title: "Resistance",
+                    x: data.times,
+                    y: data.resistance,
+                    style: { line: "red" }
+                }
+            ]);
         } catch (error) {
             this.ui.log.log(`Error updating chart for ${symbol}: ${error}`);
         }

@@ -100,7 +100,7 @@ export function createUIComponents(symbol: string): UIComponents {
   updateChart: (symbol: string, data) => {
    const chart = charts.get(symbol);
    if (chart) {
-    updateChart(chart, data);
+    chartManager.updateChartWithData(symbol, data);
    }
   },
  };
