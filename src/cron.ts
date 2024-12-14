@@ -172,24 +172,18 @@ class BackgroundMonitor {
 
 async function main() {
  try {
-  // Clear console
-  console.clear();
-
-  // Get user inputs
   const interval = await promptForInterval();
   const maxCandles = 300; // Adjust history size as needed
   const topX = await promptForTopSymbols();
 
-  // Initialize display
-  console.log("Initializing display...");
+  const display = createCronUIComponents();
+  display.log.log("Initializing display...");
 
-  // Initialize APIs
-  console.log("Initializing APIs...");
+  display.log.log("Initializing APIs...");
   const api = new HyperliquidInfoAPI();
   const wsApi = new HyperliquidWebSocketAPI(api);
 
-  // Fetch market data
-  console.log("Fetching market data...");
+  display.log.log("Fetching market data...");
   const [meta, assetCtxs] = await api.getMetaAndAssetCtxs();
 
   // Sort by 24h volume and take top 10
@@ -201,7 +195,7 @@ async function main() {
     .map((asset, i) => meta.universe[i].name),
   ];
 
-  console.log("Top symbols by 24h volume:", topSymbols.join(", "));
+  display.log.log("Top symbols by 24h volume: " + topSymbols.join(", "));
 
   // Create monitor
   const monitor = new BackgroundMonitor(
@@ -221,21 +215,21 @@ async function main() {
   process.on("SIGINT", async () => {
    try {
     await wsApi.close();
-    console.log("\nGracefully shutting down...");
+    display.log.log("Gracefully shutting down...");
     process.exit(0);
    } catch (error) {
-    console.error("Error during shutdown:", error);
+    display.log.log("Error during shutdown: " + error);
     process.exit(1);
    }
   });
  } catch (error) {
-  console.error("Fatal error:", error);
+  display.log.log("Fatal error: " + error);
   process.exit(1);
  }
 }
 
 // Start the application
 main().catch((error) => {
- console.error("Unhandled error:", error);
+ display.log.log("Unhandled error: " + error);
  process.exit(1);
 });

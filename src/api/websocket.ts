@@ -36,7 +36,7 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
     this.ws = new WebSocket(this.WS_URL);
 
     this.ws.on("open", () => {
-     console.log("WebSocket connected");
+     this.emit('info', "WebSocket connected");
      this.reconnectAttempts = 0;
      this.setupPingInterval();
      this.resubscribeAll();
@@ -53,7 +53,7 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
     });
 
     this.ws.on("close", () => {
-     console.log("WebSocket disconnected");
+     this.emit('info', "WebSocket disconnected");
      this.cleanup();
      this.handleReconnect();
     });
@@ -90,7 +90,7 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
   this.reconnectAttempts++;
   const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1);
 
-  console.log(
+  this.emit('info',
    `Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts}) in ${delay}ms`
   );
 
