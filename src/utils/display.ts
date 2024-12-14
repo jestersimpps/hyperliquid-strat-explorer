@@ -21,8 +21,8 @@ export class DisplayManager {
             screen: this.screen
         });
 
-        // Create the chart (left side)
-        this.chart = this.grid.set(0, 0, 12, 6, contrib.line, {
+        // Create the chart (top)
+        this.chart = this.grid.set(0, 0, 8, 12, contrib.line, {
             style: {
                 line: "yellow",
                 text: "green",
@@ -39,8 +39,8 @@ export class DisplayManager {
             maxY: 0
         });
 
-        // Create the table (right side)
-        this.table = this.grid.set(0, 6, 12, 6, contrib.table, {
+        // Create the table (bottom)
+        this.table = this.grid.set(8, 0, 4, 12, contrib.table, {
             keys: true,
             fg: 'white',
             selectedFg: 'white',

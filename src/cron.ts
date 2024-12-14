@@ -185,6 +185,9 @@ async function main() {
   const interval = "5m"; // Adjust interval as needed
   const maxCandles = 300; // Adjust history size as needed
 
+  // Initialize display
+  console.log("Initializing display...");
+  
   // Initialize APIs
   console.log("Initializing APIs...");
   const api = new HyperliquidInfoAPI();
