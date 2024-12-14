@@ -34,7 +34,9 @@ export class DisplayManager {
             legendWidth: 20,
             legendPosition: "top-left",
             wholeNumbersOnly: false,
-            label: 'Price Chart'
+            label: 'Price Chart',
+            minY: 0,
+            maxY: 0
         });
 
         // Create the table (right side)
@@ -85,6 +87,15 @@ export class DisplayManager {
 
         const supportLine = new Array(times.length).fill(support);
         const resistanceLine = new Array(times.length).fill(resistance);
+
+        // Calculate y-axis range with padding
+        const allValues = [...prices, support, resistance];
+        const minValue = Math.min(...allValues);
+        const maxValue = Math.max(...allValues);
+        const padding = (maxValue - minValue) * 0.1; // 10% padding
+
+        this.chart.options.minY = minValue - padding;
+        this.chart.options.maxY = maxValue + padding;
 
         const data = [
             {
