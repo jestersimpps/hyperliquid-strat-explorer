@@ -30,6 +30,10 @@ export class DisplayManager {
             },
             xLabelPadding: 3,
             xPadding: 5,
+            showLegend: true,
+            legendWidth: 20,
+            legendPosition: "top-left",
+            wholeNumbersOnly: false,
             label: 'Price Chart'
         });
 
@@ -74,13 +78,42 @@ export class DisplayManager {
         const times = candles.map(c => new Date(c.t).toLocaleTimeString());
         const prices = candles.map(c => parseFloat(c.c));
 
-        const data = {
-            title: symbol,
-            x: times,
-            y: prices
-        };
+        // Calculate support and resistance
+        const sortedPrices = [...prices].sort((a, b) => a - b);
+        const support = sortedPrices[Math.floor(sortedPrices.length * 0.2)]; // 20th percentile
+        const resistance = sortedPrices[Math.floor(sortedPrices.length * 0.8)]; // 80th percentile
 
-        this.chart.setData([data]);
+        const supportLine = new Array(times.length).fill(support);
+        const resistanceLine = new Array(times.length).fill(resistance);
+
+        const data = [
+            {
+                title: symbol,
+                x: times,
+                y: prices,
+                style: {
+                    line: 'yellow'
+                }
+            },
+            {
+                title: 'Support',
+                x: times,
+                y: supportLine,
+                style: {
+                    line: 'green'
+                }
+            },
+            {
+                title: 'Resistance',
+                x: times,
+                y: resistanceLine,
+                style: {
+                    line: 'red'
+                }
+            }
+        ];
+
+        this.chart.setData(data);
     }
 
     render(): void {
