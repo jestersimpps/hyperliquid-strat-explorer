@@ -16,6 +16,7 @@ class BackgroundMonitor {
         private interval: string,
         private maxCandles: number
     ) {
+        // Initialize strategies and trade history
         this.symbols.forEach(symbol => {
             this.strategies.set(symbol, new BreakoutStrategy());
         });
@@ -25,13 +26,34 @@ class BackgroundMonitor {
         const timeframeMs = calculateTimeframe(this.interval, this.maxCandles);
 
         for (const symbol of this.symbols) {
+            // Subscribe to candles
             await this.wsApi.subscribeToCandles(
                 symbol,
                 this.interval,
                 timeframeMs,
                 ({ candles }) => this.handleCandleUpdate(symbol, candles)
             );
-            console.log(`Subscribed to ${symbol} ${this.interval} candles`);
+            
+            // Subscribe to trades
+            await this.wsApi.subscribeTrades(symbol, (trade) => this.handleTradeUpdate(symbol, trade));
+            
+            console.log(`Subscribed to ${symbol} ${this.interval} candles and trades`);
+        }
+    }
+
+    private handleTradeUpdate(symbol: string, trade: any): void {
+        try {
+            const timestamp = new Date(trade.timestamp).toLocaleTimeString();
+            const side = trade.side.toUpperCase();
+            const price = parseFloat(trade.limitPx).toFixed(2);
+            const size = parseFloat(trade.sz).toFixed(4);
+            
+            console.log(
+                `\n[TRADE] ${timestamp} | ${symbol} | ${side} | ` +
+                `Price: ${price} | Size: ${size}`
+            );
+        } catch (error) {
+            console.error(`Error processing trade for ${symbol}:`, error);
         }
     }
 
