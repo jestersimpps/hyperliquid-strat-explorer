@@ -1,5 +1,4 @@
 import * as blessed from "blessed";
-import { Screen, Widgets } from "blessed";
 import * as contrib from "blessed-contrib";
 import { ChartConfig } from "../types/ui";
 
