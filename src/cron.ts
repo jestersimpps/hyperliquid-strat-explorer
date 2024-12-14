@@ -95,7 +95,6 @@ class BackgroundMonitor {
     const prevDayPrice = parseFloat(dayAgoCandle.c);
     const priceChange = ((currentPrice - prevDayPrice) / prevDayPrice) * 100;
     const volumeUSD = parseFloat(currentCandle.v) * currentPrice;
-    const lastUpdate = new Date(currentCandle.t).toLocaleTimeString();
     const breakoutMetrics = this.analyzeSymbol(symbol, history);
 
     return {
@@ -103,7 +102,6 @@ class BackgroundMonitor {
      currentPrice,
      priceChange,
      volumeUSD,
-     lastUpdate,
      breakoutMetrics,
      // Pre-format display strings
      symbolPad: symbol.padEnd(9),

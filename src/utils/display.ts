@@ -51,7 +51,7 @@ export class DisplayManager {
             height: '100%',
             border: {type: "line", fg: "cyan"},
             columnSpacing: 3,
-            columnWidth: [10, 10, 12, 10, 12, 12, 12]
+            columnWidth: [10, 10, 12, 10, 12, 12]
         });
 
         // Handle exit
@@ -59,15 +59,14 @@ export class DisplayManager {
     }
 
     updateTable(data: any[]): void {
-        const headers = ['Symbol', 'Price', '24h Change', 'Volume', 'Confidence', 'Signal', 'Last Update'];
+        const headers = ['Symbol', 'Price', '24h Change', 'Volume', 'Confidence', 'Signal'];
         const rows = data.map(metric => [
             metric.symbol,
             metric.currentPrice.toFixed(2),
             (metric.priceChange >= 0 ? '+' : '') + metric.priceChange.toFixed(2) + '%',
             (metric.volumeUSD / 1000000).toFixed(2) + 'M',
             (metric.breakoutMetrics.confidence * 100).toFixed(1) + '%',
-            metric.breakoutMetrics.type || 'NONE',
-            metric.lastUpdate
+            metric.breakoutMetrics.type || 'NONE'
         ]);
 
         this.table.setData({
