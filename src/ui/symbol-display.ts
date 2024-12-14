@@ -1,9 +1,10 @@
-import * as blessed from "blessed";
 import * as contrib from "blessed-contrib";
 import { BreakoutSignal } from "../types/breakout";
+import { BaseUIComponents, CandleData } from "../types/ui";
+import { createBaseScreen, createGrid, getDefaultChartConfig, setupExitHandler } from "../utils/ui-config";
 import { updateBreakoutBox, updateChart } from "./shared-updater";
 
-export interface UIComponents {
+export interface UIComponents extends BaseUIComponents {
  screen: blessed.Widgets.Screen;
  charts: Map<string, contrib.Widgets.LineElement>;
  log: contrib.Widgets.LogElement;
