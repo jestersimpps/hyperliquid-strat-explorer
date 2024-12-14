@@ -64,11 +64,21 @@ export class WebSocketHandler {
             const formattedError = [
                 `Error processing ${symbol} data:`,
                 errorMessage.message,
-                ...(errorMessage.cause ? [`Cause: ${errorMessage.cause}`] : []),
+                ...(errorMessage.cause ? [`Cause: ${errorMessage.cause.message || String(errorMessage.cause)}`] : []),
                 ...(errorMessage.stack ? errorMessage.stack.split('\n').slice(1, 3) : [])
             ].join('\n');
             
             this.ui.log.log(formattedError);
+            
+            // Retry connection after timeout
+            if (errorMessage.cause?.code === 'UND_ERR_CONNECT_TIMEOUT') {
+                setTimeout(() => {
+                    this.ui.log.log(`Retrying connection for ${symbol}...`);
+                    this.subscribeToSymbol(symbol, candles[0]?.i || '5m', 300000).catch(retryError => {
+                        this.ui.log.log(`Retry failed for ${symbol}: ${retryError.message}`);
+                    });
+                }, 5000); // Wait 5 seconds before retry
+            }
         }
     }
 
