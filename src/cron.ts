@@ -21,6 +21,9 @@ class BackgroundMonitor {
   this.symbols.forEach((symbol) => {
    this.strategies.set(symbol, new BreakoutStrategy());
   });
+  
+  // Set higher limit for WebSocket event listeners
+  this.wsApi.setMaxListeners(this.symbols.length + 10); // Add buffer for other listeners
  }
 
  async start(): Promise<void> {
