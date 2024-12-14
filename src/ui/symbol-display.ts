@@ -21,6 +21,7 @@ export interface UIComponents extends BaseUIComponents {
    resistance: number[];
   }
  ) => void;
+ render: () => void;
 }
 
 export function createUIComponents(symbol: string): UIComponents {
