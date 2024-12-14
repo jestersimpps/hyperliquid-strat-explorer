@@ -59,7 +59,16 @@ export class WebSocketHandler {
             });
 
         } catch (error) {
-            this.ui.log.log(`Error processing ${symbol} data: ${error}`);
+            // Format and log detailed error information
+            const errorMessage = error instanceof Error ? error : new Error(String(error));
+            const formattedError = [
+                `Error processing ${symbol} data:`,
+                errorMessage.message,
+                ...(errorMessage.cause ? [`Cause: ${errorMessage.cause.message || errorMessage.cause}`] : []),
+                ...(errorMessage.stack ? errorMessage.stack.split('\n').slice(1, 3) : [])
+            ].join('\n');
+            
+            this.ui.log.log(formattedError);
         }
     }
 

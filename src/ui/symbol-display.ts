@@ -64,6 +64,26 @@ export function createUIComponents(symbol: string): UIComponents {
   fg: "green",
   selectedFg: "green",
   label: "Log",
+  mouse: true,
+  scrollable: true,
+  alwaysScroll: true,
+  scrollbar: {
+    ch: ' ',
+    track: {
+      bg: 'cyan'
+    },
+    style: {
+      inverse: true
+    }
+  },
+  style: {
+    fg: "red",
+    focus: {
+      border: {
+        fg: "red"
+      }
+    }
+  }
  });
 
  // Add breakout confirmation box
