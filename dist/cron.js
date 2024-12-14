@@ -2,29 +2,25 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const info_1 = require("./api/info");
 const websocket_1 = require("./api/websocket");
-const breakout_1 = require("./strategies/breakout");
-const sound_1 = require("./utils/sound");
 const time_1 = require("./utils/time");
 const cron_display_1 = require("./ui/cron-display");
 const prompt_1 = require("./utils/prompt");
+const breakout_manager_1 = require("./services/breakout-manager");
 class BackgroundMonitor {
     wsApi;
     symbols;
     interval;
     maxCandles;
     candleHistory = new Map();
-    strategies = new Map();
     display;
+    breakoutManager;
     constructor(wsApi, symbols, interval, maxCandles) {
         this.wsApi = wsApi;
         this.symbols = symbols;
         this.interval = interval;
         this.maxCandles = maxCandles;
         this.display = (0, cron_display_1.createCronUIComponents)();
-        // Initialize strategies and trade history
-        this.symbols.forEach((symbol) => {
-            this.strategies.set(symbol, new breakout_1.BreakoutStrategy());
-        });
+        this.breakoutManager = new breakout_manager_1.BreakoutManager(this.display, this.symbols);
         // Set higher limit for WebSocket event listeners
         this.wsApi.setMaxListeners(this.symbols.length + 10); // Add buffer for other listeners
     }
@@ -126,8 +122,9 @@ class BackgroundMonitor {
         }
     }
     analyzeSymbol(symbol, history) {
-        const strategy = this.strategies.get(symbol);
-        if (!strategy || history.length === 0) {
+        this.breakoutManager.processCandles(symbol, history);
+        const signal = this.breakoutManager.getSignal(symbol);
+        if (!signal || history.length === 0) {
             return {
                 confidence: 0,
                 type: null,
@@ -136,25 +133,12 @@ class BackgroundMonitor {
                 timeElapsed: 0,
             };
         }
-        const signal = strategy.detectBreakout(history);
-        if (signal) {
-            if (signal.confidence > 0.8) {
-                (0, sound_1.playSound)("breakout");
-            }
-            return {
-                confidence: signal.confidence,
-                type: signal.type,
-                price: signal.price,
-                volumeIncrease: signal.confirmations.volumeIncrease,
-                timeElapsed: signal.confirmations.timeElapsed,
-            };
-        }
         return {
-            confidence: 0,
-            type: null,
-            price: null,
-            volumeIncrease: 0,
-            timeElapsed: 0,
+            confidence: signal.confidence,
+            type: signal.type,
+            price: signal.price,
+            volumeIncrease: signal.confirmations.volumeIncrease,
+            timeElapsed: signal.confirmations.timeElapsed,
         };
     }
 }

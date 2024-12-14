@@ -34,9 +34,9 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createUIComponents = createUIComponents;
-exports.updateBreakoutBox = updateBreakoutBox;
 const blessed = __importStar(require("blessed"));
 const contrib = __importStar(require("blessed-contrib"));
+const shared_updater_1 = require("./shared-updater");
 function createUIComponents(symbol) {
     // Initialize blessed screen
     const screen = blessed.screen({
@@ -73,7 +73,7 @@ function createUIComponents(symbol) {
     const log = grid.set(8, 0, 4, 6, contrib.log, {
         fg: "green",
         selectedFg: "green",
-        label: "Latest Candle Info",
+        label: "Log",
     });
     // Add breakout confirmation box
     const breakoutBox = grid.set(8, 6, 4, 6, contrib.table, {
@@ -81,10 +81,24 @@ function createUIComponents(symbol) {
         fg: "white",
         selectedFg: "white",
         selectedBg: "blue",
-        interactive: false,
+        interactive: true,
+        mouse: true,
         label: "Breakout Analysis",
         columnSpacing: 2,
         columnWidth: [20, 20],
+        scrollable: true,
+        alwaysScroll: true,
+        scrollbar: {
+            ch: ' ',
+            track: {
+                bg: 'cyan'
+            },
+            style: {
+                inverse: true
+            }
+        },
+        clickable: true,
+        focusable: false
     });
     // Handle exit
     screen.key(["escape", "q", "C-c"], function () {
@@ -94,34 +108,38 @@ function createUIComponents(symbol) {
     const updateTitle = (interval, candleCount) => {
         screen.title = `Hyperliquid Terminal - ${interval} - ${candleCount} candles`;
     };
-    return { screen, charts, log, breakoutBox, updateTitle };
-}
-function updateBreakoutBox(breakoutBox, breakoutSignals) {
-    const breakoutData = Array.from(breakoutSignals.entries())
-        .map(([sym, signal]) => [
-        ["Symbol", sym],
-        [
-            "Volume Increase",
-            `${(signal.confirmations.volumeIncrease * 100).toFixed(1)}%`,
-        ],
-        ["Volume Confirmation", signal.confirmations.volumeConfirmation ? "✓" : "✗"],
-        ["Price Action", signal.confirmations.priceAction ? "✓" : "✗"],
-        ["Trend Alignment", signal.confirmations.trendAlignment ? "✓" : "✗"],
-        [
-            "False Breakout Check",
-            signal.confirmations.falseBreakoutCheck ? "✓" : "✗",
-        ],
-        ["Multi-Timeframe", signal.confirmations.multiTimeframe ? "✓" : "✗"],
-        ["Volatility Check", signal.confirmations.volatilityCheck ? "✓" : "✗"],
-        ["Time Elapsed", `${(signal.confirmations.timeElapsed / 60000).toFixed(1)}min`],
-        ["Confidence", `${(signal.confidence * 100).toFixed(1)}%`],
-        ["Signal Type", signal.type],
-    ])
-        .flat();
-    breakoutBox.setData({
-        headers: ["Indicator", "Status"],
-        data: breakoutData.length > 0
-            ? breakoutData
-            : [["No active breakout signals", ""]],
-    });
+    return {
+        screen,
+        charts,
+        log,
+        breakoutBox,
+        updateTitle,
+        render: () => screen.render(),
+        updateBreakoutBox: (breakoutSignals) => (0, shared_updater_1.updateBreakoutBox)(breakoutBox, breakoutSignals),
+        updateChart: (symbol, data) => {
+            const chart = charts.get(symbol);
+            if (chart) {
+                chart.setData([
+                    {
+                        title: "Price",
+                        x: data.times,
+                        y: data.prices,
+                        style: { line: "yellow" }
+                    },
+                    {
+                        title: "Support",
+                        x: data.times,
+                        y: data.support,
+                        style: { line: "green" }
+                    },
+                    {
+                        title: "Resistance",
+                        x: data.times,
+                        y: data.resistance,
+                        style: { line: "red" }
+                    }
+                ]);
+            }
+        },
+    };
 }

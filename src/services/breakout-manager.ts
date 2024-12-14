@@ -4,7 +4,7 @@ import { BreakoutStrategy } from '../strategies/breakout';
 import { UIComponents } from '../ui/symbol-display';
 import { CronUIComponents } from '../ui/cron-display';
 import { playSound } from '../utils/sound';
-import { updateBreakoutBox } from '../ui/symbol-display';
+import { updateBreakoutBox } from '../ui/shared-updater';
 
 export class BreakoutManager {
     private strategies: Map<string, BreakoutStrategy>;

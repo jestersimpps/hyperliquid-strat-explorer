@@ -1,8 +1,6 @@
 import { HyperliquidInfoAPI } from "./api/info";
 import { HyperliquidWebSocketAPI } from "./api/websocket";
 import { WsCandle } from "./types/websocket";
-import { BreakoutStrategy } from "./strategies/breakout";
-import { playSound } from "./utils/sound";
 import { calculateTimeframe } from "./utils/time";
 import { createCronUIComponents } from "./ui/cron-display";
 import { promptForInterval, promptForTopSymbols } from "./utils/prompt";

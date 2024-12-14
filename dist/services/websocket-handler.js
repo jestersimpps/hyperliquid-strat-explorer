@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WebSocketHandler = void 0;
+const candle_processor_1 = require("../utils/candle-processor");
 class WebSocketHandler {
     wsApi;
     ui;
@@ -30,25 +31,9 @@ class WebSocketHandler {
                 this.ui.log.log(`Warning: Received data for ${candles[0].s} while processing ${symbol}`);
                 return;
             }
-            // Update candle history
-            let history = this.candleHistory.get(symbol) || [];
-            // Add new candles
-            for (const candle of candles) {
-                const existingIndex = history.findIndex(c => c.t === candle.t);
-                if (existingIndex !== -1) {
-                    // Update existing candle
-                    history[existingIndex] = candle;
-                }
-                else {
-                    // Add new candle
-                    history.push(candle);
-                }
-            }
-            // Sort by timestamp and limit to maxCandles
-            history = history
-                .sort((a, b) => a.t - b.t)
-                .slice(-this.maxCandles);
-            this.candleHistory.set(symbol, history);
+            const history = this.candleHistory.get(symbol) || [];
+            const updatedHistory = (0, candle_processor_1.updateCandleHistory)(history, candles, this.maxCandles);
+            this.candleHistory.set(symbol, updatedHistory);
             // Update title with interval and candle count
             this.ui.updateTitle(candles[0].i, history.length);
             // Update chart with full history and force refresh

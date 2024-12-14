@@ -15,10 +15,6 @@ class ChartManager {
             if (!chart) {
                 throw new Error(`Chart not found for ${symbol}`);
             }
-            // Ensure we have data to display
-            if (candles.length === 0) {
-                return;
-            }
             const times = candles.map(c => new Date(c.t).toLocaleTimeString());
             const prices = candles.map(c => parseFloat(c.c));
             const minPrice = Math.min(...prices);
@@ -31,7 +27,6 @@ class ChartManager {
             const { support, resistance } = strategy.analyzeTrendlines(candles);
             const supportPoints = times.map((_, i) => support.start.y + (support.end.y - support.start.y) * (i / (times.length - 1)));
             const resistancePoints = times.map((_, i) => resistance.start.y + (resistance.end.y - resistance.start.y) * (i / (times.length - 1)));
-            // Force chart refresh
             chart.setData([
                 {
                     title: `${symbol}/USD - ${candles[0].i} - ${candles.length} candles`,
@@ -54,7 +49,37 @@ class ChartManager {
             ]);
             chart.options.minY = minPrice - padding;
             chart.options.maxY = maxPrice + padding;
-            // this.ui.log.log(`Updated chart for ${symbol} with ${times.length} data points`);
+        }
+        catch (error) {
+            this.ui.log.log(`Error updating chart for ${symbol}: ${error}`);
+        }
+    }
+    updateChartWithData(symbol, data) {
+        try {
+            const chart = this.ui.charts.get(symbol);
+            if (!chart) {
+                throw new Error(`Chart not found for ${symbol}`);
+            }
+            chart.setData([
+                {
+                    title: "Price",
+                    x: data.times,
+                    y: data.prices,
+                    style: { line: "yellow" }
+                },
+                {
+                    title: "Support",
+                    x: data.times,
+                    y: data.support,
+                    style: { line: "green" }
+                },
+                {
+                    title: "Resistance",
+                    x: data.times,
+                    y: data.resistance,
+                    style: { line: "red" }
+                }
+            ]);
         }
         catch (error) {
             this.ui.log.log(`Error updating chart for ${symbol}: ${error}`);
