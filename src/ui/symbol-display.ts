@@ -1,13 +1,19 @@
 import * as blessed from "blessed";
 import * as contrib from "blessed-contrib";
 import { BreakoutSignal } from "../types/breakout";
+import { updateBreakoutBox, updateChart } from "./symbol-display-updater";
 
 export interface UIComponents {
- screen: blessed.Widgets.Screen;
- charts: Map<string, contrib.Widgets.LineElement>;
- log: contrib.Widgets.LogElement;
- breakoutBox: contrib.Widgets.TableElement;
- updateTitle: (interval: string, candleCount: number) => void;
+  screen: blessed.Widgets.Screen;
+  charts: Map<string, contrib.Widgets.LineElement>;
+  log: contrib.Widgets.LogElement;
+  breakoutBox: contrib.Widgets.TableElement;
+  updateTitle: (interval: string, candleCount: number) => void;
+  updateBreakoutBox: (breakoutSignals: Map<string, BreakoutSignal>) => void;
+  updateChart: (
+    symbol: string,
+    data: { times: string[]; prices: number[]; support: number[]; resistance: number[] }
+  ) => void;
 }
 
 export function createUIComponents(symbol: string): UIComponents {
@@ -74,40 +80,20 @@ export function createUIComponents(symbol: string): UIComponents {
   screen.title = `Hyperliquid Terminal - ${interval} - ${candleCount} candles`;
  };
 
- return { screen, charts, log, breakoutBox, updateTitle };
+ return {
+   screen,
+   charts,
+   log,
+   breakoutBox,
+   updateTitle,
+   updateBreakoutBox: (breakoutSignals: Map<string, BreakoutSignal>) =>
+     updateBreakoutBox(breakoutBox, breakoutSignals),
+   updateChart: (symbol: string, data) => {
+     const chart = charts.get(symbol);
+     if (chart) {
+       updateChart(chart, data, symbol);
+     }
+   },
+ };
 }
 
-export function updateBreakoutBox(
- breakoutBox: contrib.Widgets.TableElement,
- breakoutSignals: Map<string, BreakoutSignal>
-): void {
- const breakoutData = Array.from(breakoutSignals.entries())
-  .map(([sym, signal]) => [
-   ["Symbol", sym],
-   [
-    "Volume Increase",
-    `${(signal.confirmations.volumeIncrease * 100).toFixed(1)}%`,
-   ],
-   ["Volume Confirmation", signal.confirmations.volumeConfirmation ? "✓" : "✗"],
-   ["Price Action", signal.confirmations.priceAction ? "✓" : "✗"],
-   ["Trend Alignment", signal.confirmations.trendAlignment ? "✓" : "✗"],
-   [
-    "False Breakout Check",
-    signal.confirmations.falseBreakoutCheck ? "✓" : "✗",
-   ],
-   ["Multi-Timeframe", signal.confirmations.multiTimeframe ? "✓" : "✗"],
-   ["Volatility Check", signal.confirmations.volatilityCheck ? "✓" : "✗"],
-   ["Time Elapsed", `${(signal.confirmations.timeElapsed / 60000).toFixed(1)}min`],
-   ["Confidence", `${(signal.confidence * 100).toFixed(1)}%`],
-   ["Signal Type", signal.type],
-  ])
-  .flat();
-
- breakoutBox.setData({
-  headers: ["Indicator", "Status"],
-  data:
-   breakoutData.length > 0
-    ? breakoutData
-    : [["No active breakout signals", ""]],
- });
-}
