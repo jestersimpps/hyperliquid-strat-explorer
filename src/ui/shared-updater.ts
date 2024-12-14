@@ -12,6 +12,7 @@ export function updateBreakoutBox(
   if (data instanceof Map) {
     // Handle symbol-display case with Map
     breakoutData = Array.from(data.entries())
+      .sort((a, b) => b[1].confidence - a[1].confidence) // Sort by confidence
       .map(([sym, signal]) => [
         ["", ""],
         ["Symbol", sym],
@@ -36,6 +37,7 @@ export function updateBreakoutBox(
   } else {
     // Handle cron-display case with single highest confidence object
     breakoutData = data ? [
+      ["", ""], // Add spacing at top
       ["Symbol", data.symbol],
       [
         "Volume Increase",
