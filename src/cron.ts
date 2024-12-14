@@ -45,7 +45,6 @@ class BackgroundMonitor {
   // Start analysis loop
   setInterval(() => {
    this.logMarketStats();
-   this.analyzeAllSymbols();
   }, 1000); // Run analysis every second
  }
 
