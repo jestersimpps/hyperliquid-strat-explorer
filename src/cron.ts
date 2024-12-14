@@ -171,13 +171,14 @@ class BackgroundMonitor {
 }
 
 async function main() {
+ let display = createCronUIComponents();
+ 
  try {
+  display.log.log("Initializing display...");
+  
   const interval = await promptForInterval();
   const maxCandles = 300; // Adjust history size as needed
   const topX = await promptForTopSymbols();
-
-  const display = createCronUIComponents();
-  display.log.log("Initializing display...");
 
   display.log.log("Initializing APIs...");
   const api = new HyperliquidInfoAPI();
@@ -229,6 +230,7 @@ async function main() {
 }
 
 // Start the application
+let display = createCronUIComponents();
 main().catch((error) => {
  display.log.log("Unhandled error: " + error);
  process.exit(1);
