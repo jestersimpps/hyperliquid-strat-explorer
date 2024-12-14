@@ -77,29 +77,44 @@ class BackgroundMonitor {
   }
  }
 
- private analyzeAllSymbols(): void {
-  // Clear console and show header
+ private logMarketStats(): void {
   console.clear();
-  console.log("\n🔄 Real-time Market Monitor");
+  console.log("\n📊 Market Statistics");
   console.log("━".repeat(50));
-  console.log("Symbol    Price      24h Change    Volume    Signal");
+  console.log("Symbol    Price      24h Change    Volume    Last Update");
   console.log("━".repeat(50));
+
   for (const [symbol, history] of this.candleHistory.entries()) {
-   const strategy = this.strategies.get(symbol);
-   if (strategy && history.length > 0) {
-    const currentPrice = parseFloat(history[history.length - 1].c);
-    const prevDayPrice = parseFloat(history[0].c);
+   if (history.length > 0) {
+    const currentCandle = history[history.length - 1];
+    const dayAgoCandle = history[0];
+    
+    const currentPrice = parseFloat(currentCandle.c);
+    const prevDayPrice = parseFloat(dayAgoCandle.c);
     const priceChange = ((currentPrice - prevDayPrice) / prevDayPrice) * 100;
-    const volume = parseFloat(history[history.length - 1].v);
+    const volume = parseFloat(currentCandle.v);
+    const lastUpdate = new Date(currentCandle.t).toLocaleTimeString();
 
     // Format the output line
     const symbolPad = symbol.padEnd(9);
     const pricePad = currentPrice.toFixed(2).padEnd(11);
-    const changePad =
-     (priceChange >= 0 ? "+" : "") + priceChange.toFixed(2).padEnd(8) + "%";
+    const changePad = (priceChange >= 0 ? "+" : "") + 
+      priceChange.toFixed(2).padEnd(8) + "%";
     const volumePad = volume.toFixed(2).padEnd(10);
 
-    console.log(`${symbolPad}${pricePad}${changePad}    ${volumePad}`);
+    console.log(
+      `${symbolPad}${pricePad}${changePad}    ${volumePad}    ${lastUpdate}`
+    );
+   }
+  }
+ }
+
+ private analyzeAllSymbols(): void {
+  this.logMarketStats();
+  
+  for (const [symbol, history] of this.candleHistory.entries()) {
+   const strategy = this.strategies.get(symbol);
+   if (strategy && history.length > 0) {
 
     const signal = strategy.detectBreakout(history);
     if (signal && signal.confidence > 0.8) {
