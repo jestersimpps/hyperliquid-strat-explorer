@@ -6,6 +6,7 @@ import { playSound } from "./utils/sound";
 import { calculateTimeframe } from "./utils/time";
 import { DisplayManager } from "./utils/display";
 
+const TOP_X = 5;
 class BackgroundMonitor {
  private candleHistory: Map<string, WsCandle[]> = new Map();
  private strategies: Map<string, BreakoutStrategy> = new Map();
@@ -23,7 +24,7 @@ class BackgroundMonitor {
   this.symbols.forEach((symbol) => {
    this.strategies.set(symbol, new BreakoutStrategy());
   });
-  
+
   // Set higher limit for WebSocket event listeners
   this.wsApi.setMaxListeners(this.symbols.length + 10); // Add buffer for other listeners
  }
@@ -107,68 +108,73 @@ class BackgroundMonitor {
      // Pre-format display strings
      symbolPad: symbol.padEnd(9),
      pricePad: currentPrice.toFixed(2).padEnd(11),
-     changePad: (priceChange >= 0 ? "+" : "") + priceChange.toFixed(2).padEnd(8) + "%",
+     changePad:
+      (priceChange >= 0 ? "+" : "") + priceChange.toFixed(2).padEnd(8) + "%",
      volumePad: (volumeUSD / 1000000).toFixed(2).padEnd(10) + "M",
-     confidencePad: (breakoutMetrics.confidence * 100).toFixed(1).padEnd(8) + "%",
-     signalPad: (breakoutMetrics.type || "NONE").padEnd(10)
+     confidencePad:
+      (breakoutMetrics.confidence * 100).toFixed(1).padEnd(8) + "%",
+     signalPad: (breakoutMetrics.type || "NONE").padEnd(10),
     };
    })
    .sort((a, b) => b.breakoutMetrics.confidence - a.breakoutMetrics.confidence);
 
   // Update the display
   this.display.updateTable(marketMetrics);
-  
+
   // Update chart with highest confidence symbol
   if (marketMetrics.length > 0) {
-    const highestConfidenceSymbol = marketMetrics[0].symbol;
-    const candleData = this.candleHistory.get(highestConfidenceSymbol);
-    if (candleData) {
-      this.display.updateChart(highestConfidenceSymbol, candleData);
-    }
+   const highestConfidenceSymbol = marketMetrics[0].symbol;
+   const candleData = this.candleHistory.get(highestConfidenceSymbol);
+   if (candleData) {
+    this.display.updateChart(highestConfidenceSymbol, candleData);
+   }
   }
-  
+
   this.display.render();
  }
 
- private analyzeSymbol(symbol: string, history: WsCandle[]): { 
-   confidence: number;
-   type: string | null;
-   price: number | null;
-   volumeIncrease: number;
-   timeElapsed: number;
+ private analyzeSymbol(
+  symbol: string,
+  history: WsCandle[]
+ ): {
+  confidence: number;
+  type: string | null;
+  price: number | null;
+  volumeIncrease: number;
+  timeElapsed: number;
  } {
-   const strategy = this.strategies.get(symbol);
-   if (!strategy || history.length === 0) {
-     return {
-       confidence: 0,
-       type: null,
-       price: null,
-       volumeIncrease: 0,
-       timeElapsed: 0
-     };
-   }
-
-   const signal = strategy.detectBreakout(history);
-   if (signal) {
-     if (signal.confidence > 0.8) {
-       playSound("breakout");
-     }
-     return {
-       confidence: signal.confidence,
-       type: signal.type,
-       price: signal.price,
-       volumeIncrease: signal.confirmations.volumeIncrease,
-       timeElapsed: signal.confirmations.timeElapsed
-     };
-   }
-
+  const strategy = this.strategies.get(symbol);
+  if (!strategy || history.length === 0) {
    return {
-     confidence: 0,
-     type: null,
-     price: null,
-     volumeIncrease: 0,
-     timeElapsed: 0
+    confidence: 0,
+    type: null,
+    price: null,
+    volumeIncrease: 0,
+    timeElapsed: 0,
    };
+  }
+
+  const signal = strategy.detectBreakout(history);
+  if (signal) {
+   if (signal.confidence > 0.8) {
+    playSound("breakout");
+   }
+   return {
+    confidence: signal.confidence,
+    type: signal.type,
+    price: signal.price,
+    volumeIncrease: signal.confirmations.volumeIncrease,
+    timeElapsed: signal.confirmations.timeElapsed,
+   };
+  }
+
+  return {
+   confidence: 0,
+   type: null,
+   price: null,
+   volumeIncrease: 0,
+   timeElapsed: 0,
+  };
  }
 }
 
@@ -190,7 +196,7 @@ async function main() {
   // Sort by 24h volume and take top 10
   const topSymbols = assetCtxs
    .sort((a, b) => parseFloat(b.dayNtlVlm) - parseFloat(a.dayNtlVlm))
-   .slice(0, 30)
+   .slice(0, TOP_X)
    .map((asset, i) => meta.universe[i].name);
 
   console.log("Top symbols by 24h volume:", topSymbols.join(", "));
