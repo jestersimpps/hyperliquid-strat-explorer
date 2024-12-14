@@ -10,6 +10,9 @@ import { calculateTimeframe } from './utils/time';
 
 async function main() {
     try {
+        // Clear console
+        console.clear();
+        
         // Play startup sound
         playSound('startup');
         
