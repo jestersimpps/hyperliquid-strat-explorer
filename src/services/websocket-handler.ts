@@ -64,7 +64,7 @@ export class WebSocketHandler {
             const formattedError = [
                 `Error processing ${symbol} data:`,
                 errorMessage.message,
-                ...(errorMessage.cause ? [`Cause: ${errorMessage.cause.message || errorMessage.cause}`] : []),
+                ...(errorMessage.cause ? [`Cause: ${errorMessage.cause}`] : []),
                 ...(errorMessage.stack ? errorMessage.stack.split('\n').slice(1, 3) : [])
             ].join('\n');
             
