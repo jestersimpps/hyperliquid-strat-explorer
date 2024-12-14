@@ -99,8 +99,8 @@ async function main() {
     try {
         // Configuration
         const symbols = ['BTC', 'ETH', 'SOL']; // Add more symbols as needed
-        const interval = '15m';                 // Adjust interval as needed
-        const maxCandles = 200;                 // Adjust history size as needed
+        const interval = '5m';                 // Adjust interval as needed
+        const maxCandles = 300;                 // Adjust history size as needed
 
         // Initialize APIs
         const api = new HyperliquidInfoAPI();
