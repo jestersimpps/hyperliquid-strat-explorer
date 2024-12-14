@@ -57,7 +57,7 @@ export class DisplayManager {
             height: '100%',
             border: {type: "line", fg: "cyan"},
             columnSpacing: 3,
-            columnWidth: [10, 10, 12, 10, 12, 12]
+            columnWidth: [10, 10, 12, 10, 12, 20]
         });
 
         // Create breakout box (bottom middle)
