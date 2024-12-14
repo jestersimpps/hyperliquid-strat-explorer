@@ -48,8 +48,7 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
       const message = JSON.parse(data.toString());
       this.handleMessage(message);
      } catch (error) {
-      console.error("WebSocket message:", data.toString());
-      console.error("Parse error:", error);
+      this.emit('error', new Error(`Failed to parse WebSocket message: ${error instanceof Error ? error.message : String(error)}`));
      }
     });
 
@@ -60,13 +59,15 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
     });
 
     this.ws.on("error", (error) => {
-     console.error("WebSocket error:", error);
+     const wsError = new Error(`WebSocket connection error: ${error instanceof Error ? error.message : String(error)}`);
+     this.emit('error', wsError);
      this.cleanup();
-     reject(error);
+     reject(wsError);
     });
    } catch (error) {
-    console.error("Connection error:", error);
-    reject(error);
+    const connError = new Error(`Failed to establish WebSocket connection: ${error instanceof Error ? error.message : String(error)}`);
+    this.emit('error', connError);
+    reject(connError);
    }
   });
  }
@@ -80,7 +81,8 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
 
  private async handleReconnect(): Promise<void> {
   if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-   console.error("Max reconnection attempts reached");
+   const error = new Error(`Maximum reconnection attempts (${this.maxReconnectAttempts}) reached`);
+   this.emit('error', error);
    this.emit("maxReconnectAttemptsReached");
    return;
   }
@@ -96,7 +98,7 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
    try {
     await this.connect();
    } catch (error) {
-    console.error("Reconnection failed:", error);
+    this.emit('error', new Error(`Reconnection attempt failed: ${error instanceof Error ? error.message : String(error)}`));
     this.handleReconnect();
    }
   }, delay);
@@ -162,7 +164,7 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
 
  private handleMessage(message: WsMessage): void {
   if (!message.channel || !message.data) {
-   console.warn("Received malformed message:", message);
+   this.emit('error', new Error(`Received malformed WebSocket message: ${JSON.stringify(message)}`));
    return;
   }
 
@@ -212,7 +214,7 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
 
   const subKey = this.getSubscriptionKey(type, coin);
   if (this.subscriptions.has(subKey)) {
-   console.log(`Already subscribed to: ${type} ${coin || ""}`);
+   this.emit('debug', `Already subscribed to: ${type} ${coin || ""}`);
    return;
   }
 
@@ -285,7 +287,7 @@ export class HyperliquidWebSocketAPI extends EventEmitter {
   // Check if we need to refresh the candle data
   if (this.shouldRefreshCandles(candle)) {
    this.refreshCandleData(candle.s, candle.i, 60 * 60 * 1000).catch((error) => {
-    console.error("Error refreshing candle data:", error);
+    this.emit('error', new Error(`Failed to refresh candle data: ${error instanceof Error ? error.message : String(error)}`));
    });
    return;
   }
