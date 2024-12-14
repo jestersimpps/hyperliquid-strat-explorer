@@ -4,14 +4,14 @@ import { WsCandle } from "./types/websocket";
 import { BreakoutStrategy } from "./strategies/breakout";
 import { playSound } from "./utils/sound";
 import { calculateTimeframe } from "./utils/time";
-import { DisplayManager } from "./utils/display";
+import { createCronUIComponents } from "./ui/cron-display";
 import { promptForInterval } from "./utils/prompt";
 
 const TOP_X = 30;
 class BackgroundMonitor {
  private candleHistory: Map<string, WsCandle[]> = new Map();
  private strategies: Map<string, BreakoutStrategy> = new Map();
- private display: DisplayManager;
+ private display: ReturnType<typeof createCronUIComponents>;
 
  constructor(
   private wsApi: HyperliquidWebSocketAPI,
@@ -19,7 +19,7 @@ class BackgroundMonitor {
   private interval: string,
   private maxCandles: number
  ) {
-  this.display = new DisplayManager();
+  this.display = createCronUIComponents();
   // Initialize strategies and trade history
   this.symbols.forEach((symbol) => {
    this.strategies.set(symbol, new BreakoutStrategy());
