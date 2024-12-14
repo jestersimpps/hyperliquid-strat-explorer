@@ -49,7 +49,7 @@ export function createUIComponents(symbol: string): UIComponents {
  const log = grid.set(8, 0, 4, 6, contrib.log, {
   fg: "green",
   selectedFg: "green",
-  label: "Latest Candle Info",
+  label: "Log",
  });
 
  // Add breakout confirmation box
