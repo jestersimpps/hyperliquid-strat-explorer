@@ -108,7 +108,8 @@ export function createCronUIComponents(): CronUIComponents {
    if (!strategies.has(symbol)) {
     strategies.set(symbol, new BreakoutStrategy());
    }
-   updateChart(chart, symbol, candles, strategies.get(symbol)!);
+   const strategy = strategies.get(symbol)!;
+   updateChart(chart, { symbol, candles, strategy });
   },
   logWebSocketActivity: (message: string) => log.log(message),
   updateBreakoutBox: (highestConfidence: any) =>
