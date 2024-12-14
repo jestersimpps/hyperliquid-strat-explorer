@@ -31,31 +31,13 @@ class BackgroundMonitor {
                 symbol,
                 this.interval,
                 timeframeMs,
-                ({ candles }) => this.handleCandleUpdate(symbol, candles)
+                ({ candles }) => this.handleCandleUpdate(candles[candles.length-1].s, candles)
             );
             
-            // Subscribe to trades
-            await this.wsApi.subscribeTrades(symbol, (trade) => this.handleTradeUpdate(symbol, trade));
-            
-            console.log(`Subscribed to ${symbol} ${this.interval} candles and trades`);
+            console.log(`Subscribed to ${symbol} ${this.interval} candles`);
         }
     }
 
-    private handleTradeUpdate(symbol: string, trade: any): void {
-        try {
-            const timestamp = new Date(trade.timestamp).toLocaleTimeString();
-            const side = trade.side.toUpperCase();
-            const price = parseFloat(trade.limitPx).toFixed(2);
-            const size = parseFloat(trade.sz).toFixed(4);
-            
-            console.log(
-                `\n[TRADE] ${timestamp} | ${symbol} | ${side} | ` +
-                `Price: ${price} | Size: ${size}`
-            );
-        } catch (error) {
-            console.error(`Error processing trade for ${symbol}:`, error);
-        }
-    }
 
     private handleCandleUpdate(symbol: string, candles: WsCandle[]): void {
         try {
@@ -83,6 +65,8 @@ class BackgroundMonitor {
                 .slice(-this.maxCandles);
 
             this.candleHistory.set(symbol, history);
+
+            console.log(symbol,candles[candles.length-1].c)
 
             // Process breakout signals
             const strategy = this.strategies.get(symbol);
