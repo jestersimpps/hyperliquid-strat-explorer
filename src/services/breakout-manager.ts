@@ -30,7 +30,7 @@ export class BreakoutManager {
             this.breakoutSignals.set(symbol, breakoutSignal);
             if (breakoutSignal.confidence > 0.8) {
                 playSound('breakout');
-                this.ui.log.log(
+                this.ui.screen.log(
                     `🚨 HIGH CONFIDENCE BREAKOUT on ${symbol}!\n` +
                     `Type: ${breakoutSignal.type} | ` +
                     `Price: ${breakoutSignal.price.toFixed(2)} | ` +
