@@ -71,12 +71,6 @@ class BackgroundMonitor {
    history = history.sort((a, b) => a.t - b.t).slice(-this.maxCandles);
 
    this.candleHistory.set(symbol, history);
-
-   // Log latest candle data if available
-   const latestCandle = candles[candles.length - 1];
-   if (latestCandle) {
-    console.log(symbol, latestCandle.c);
-   }
   } catch (error) {
    console.error(`Error processing ${symbol} data:`, error);
   }
@@ -84,8 +78,11 @@ class BackgroundMonitor {
 
  private analyzeAllSymbols(): void {
   for (const [symbol, history] of this.candleHistory.entries()) {
+    
    const strategy = this.strategies.get(symbol);
    if (strategy && history.length > 0) {
+    console.log(symbol, history[history.length - 1].c);
+
     const signal = strategy.detectBreakout(history);
     if (signal && signal.confidence > 0.8) {
      playSound("breakout");
@@ -129,7 +126,7 @@ async function main() {
   // Sort by 24h volume and take top 10
   const topSymbols = assetCtxs
    .sort((a, b) => parseFloat(b.dayNtlVlm) - parseFloat(a.dayNtlVlm))
-   .slice(0, 10)
+   .slice(0, 30)
    .map((asset, i) => meta.universe[i].name);
 
   console.log("Top 10 symbols by 24h volume:", topSymbols.join(", "));
