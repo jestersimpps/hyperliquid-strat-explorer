@@ -2,7 +2,7 @@ import * as blessed from "blessed";
 import * as contrib from "blessed-contrib";
 import { WsCandle } from "../types/websocket";
 import { BreakoutStrategy } from "../strategies/breakout";
-import { updateBreakoutBox, updateChart } from "./shared-updater";
+import { updateBreakoutBox } from "./shared-updater";
 
 export interface CronUIComponents {
  screen: blessed.Widgets.Screen;
@@ -100,11 +100,53 @@ export function createCronUIComponents(): CronUIComponents {
   render: () => screen.render(),
   updateTable: (data: any[]) => updateTable(table, data),
   updateChart: (symbol: string, candles: WsCandle[]) => {
-   if (!strategies.has(symbol)) {
-    strategies.set(symbol, new BreakoutStrategy());
-   }
-   const strategy = strategies.get(symbol)!;
-   updateChart(chart, { symbol, candles, strategy });
+    try {
+      if (!strategies.has(symbol)) {
+        strategies.set(symbol, new BreakoutStrategy());
+      }
+      const strategy = strategies.get(symbol)!;
+      const { support, resistance } = strategy.analyzeTrendlines(candles);
+      
+      const times = candles.map(c => new Date(c.t).toLocaleTimeString());
+      const prices = candles.map(c => parseFloat(c.c));
+      
+      const supportPoints = times.map((_, i) => 
+        support.start.y + (support.end.y - support.start.y) * (i / (times.length - 1))
+      );
+      const resistancePoints = times.map((_, i) => 
+        resistance.start.y + (resistance.end.y - resistance.start.y) * (i / (times.length - 1))
+      );
+
+      chart.setData([
+        {
+          title: `${symbol}/USD - ${candles[0].i} - ${candles.length} candles`,
+          x: times,
+          y: prices,
+          style: { line: 'yellow' }
+        },
+        {
+          title: 'Support',
+          x: times,
+          y: supportPoints,
+          style: { line: 'green' }
+        },
+        {
+          title: 'Resistance',
+          x: times,
+          y: resistancePoints,
+          style: { line: 'red' }
+        }
+      ]);
+
+      const minPrice = Math.min(...prices);
+      const maxPrice = Math.max(...prices);
+      const padding = (maxPrice - minPrice) * 0.1;
+      
+      chart.options.minY = minPrice - padding;
+      chart.options.maxY = maxPrice + padding;
+    } catch (error) {
+      log.log(`Error updating chart for ${symbol}: ${error}`);
+    }
   },
   logWebSocketActivity: (message: string) => log.log(message),
   updateBreakoutBox: (highestConfidence: any) =>
