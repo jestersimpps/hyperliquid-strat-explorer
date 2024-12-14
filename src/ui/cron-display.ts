@@ -161,7 +161,7 @@
      }
 
      function updateBreakoutBox(highestConfidence: any): void {
-         const breakoutData = [
+         const breakoutData = highestConfidence ? [
              ['Symbol', highestConfidence.symbol],
              ['Volume Increase', `${(highestConfidence.breakoutMetrics.volumeIncrease * 100).toFixed(1)}%`],
              ['Volume Confirmation', highestConfidence.breakoutMetrics.volumeConfirmation ? '✓' : '✗'],
@@ -173,7 +173,7 @@
              ['Time Elapsed', `${(highestConfidence.breakoutMetrics.timeElapsed / 60000).toFixed(1)}min`],
              ['Confidence', `${(highestConfidence.breakoutMetrics.confidence * 100).toFixed(1)}%`],
              ['Signal Type', highestConfidence.breakoutMetrics.type || 'NONE']
-         ];
+         ] : [['No active breakout signals', '']];
 
          breakoutBox.setData({
              headers: ['Indicator', 'Status'],
