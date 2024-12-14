@@ -171,7 +171,7 @@ async function main() {
    .slice(0, 30)
    .map((asset, i) => meta.universe[i].name);
 
-  console.log("Top 10 symbols by 24h volume:", topSymbols.join(", "));
+  console.log("Top symbols by 24h volume:", topSymbols.join(", "));
 
   // Create monitor
   const monitor = new BackgroundMonitor(
