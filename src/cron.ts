@@ -7,7 +7,6 @@ import { calculateTimeframe } from "./utils/time";
 import { createCronUIComponents } from "./ui/cron-display";
 import { promptForInterval } from "./utils/prompt";
 
-const TOP_X = 30;
 class BackgroundMonitor {
  private candleHistory: Map<string, WsCandle[]> = new Map();
  private strategies: Map<string, BreakoutStrategy> = new Map();
@@ -208,6 +207,7 @@ async function main() {
   // Get user inputs
   const interval = await promptForInterval();
   const maxCandles = 300; // Adjust history size as needed
+  const topX = await promptForTopSymbols();
 
   // Initialize display
   console.log("Initializing display...");
@@ -224,7 +224,7 @@ async function main() {
   // Sort by 24h volume and take top 10
   const topSymbols = assetCtxs
    .sort((a, b) => parseFloat(b.dayNtlVlm) - parseFloat(a.dayNtlVlm))
-   .slice(0, TOP_X)
+   .slice(0, topX)
    .map((asset, i) => meta.universe[i].name);
 
   console.log("Top symbols by 24h volume:", topSymbols.join(", "));

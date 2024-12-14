@@ -42,3 +42,18 @@ export async function promptForMaxCandles(): Promise<number> {
         });
     });
 }
+
+export async function promptForTopSymbols(): Promise<number> {
+    const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+    });
+
+    return new Promise((resolve) => {
+        rl.question('Enter number of top symbols to monitor (default: 30): ', (answer) => {
+            rl.close();
+            const topX = parseInt(answer, 10);
+            resolve(isNaN(topX) ? 30 : topX);
+        });
+    });
+}
