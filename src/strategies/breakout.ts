@@ -38,13 +38,25 @@ export class BreakoutStrategy {
     return difference > 0 ? 'UP' : 'DOWN';
   }
 
+  private getIntervalMs(interval: string): number {
+    const value = parseInt(interval.slice(0, -1));
+    const unit = interval.slice(-1);
+    switch (unit) {
+      case 'm': return value * 60 * 1000;
+      case 'h': return value * 60 * 60 * 1000;
+      case 'd': return value * 24 * 60 * 60 * 1000;
+      default: return 15 * 60 * 1000; // default 15min
+    }
+  }
+
   private checkFalseBreakout(
     candles: WsCandle[], 
     breakoutCandle: WsCandle, 
     level: number, 
-    type: SignalType,
-    minConfirmationTime: number = 15 * 60 * 1000  // 15 minutes default
+    type: SignalType
   ): boolean {
+    // Use 3 candle intervals as minimum confirmation time
+    const minConfirmationTime = this.getIntervalMs(breakoutCandle.i) * 3;
     const subsequentCandles = candles.slice(
       candles.findIndex(c => c.t === breakoutCandle.t) + 1
     );
