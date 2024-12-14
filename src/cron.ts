@@ -6,11 +6,12 @@ import { playSound } from "./utils/sound";
 import { calculateTimeframe } from "./utils/time";
 import { createCronUIComponents } from "./ui/cron-display";
 import { promptForInterval, promptForTopSymbols } from "./utils/prompt";
+import { BreakoutManager } from "./services/breakout-manager";
 
 class BackgroundMonitor {
  private candleHistory: Map<string, WsCandle[]> = new Map();
- private strategies: Map<string, BreakoutStrategy> = new Map();
  private display: ReturnType<typeof createCronUIComponents>;
+ private breakoutManager: BreakoutManager;
 
  constructor(
   private wsApi: HyperliquidWebSocketAPI,
@@ -19,10 +20,7 @@ class BackgroundMonitor {
   private maxCandles: number
  ) {
   this.display = createCronUIComponents();
-  // Initialize strategies and trade history
-  this.symbols.forEach((symbol) => {
-   this.strategies.set(symbol, new BreakoutStrategy());
-  });
+  this.breakoutManager = new BreakoutManager(this.display, this.symbols);
 
   // Set higher limit for WebSocket event listeners
   this.wsApi.setMaxListeners(this.symbols.length + 10); // Add buffer for other listeners

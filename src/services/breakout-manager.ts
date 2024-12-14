@@ -2,6 +2,7 @@ import { WsCandle } from '../types/websocket';
 import { BreakoutSignal } from '../types/breakout';
 import { BreakoutStrategy } from '../strategies/breakout';
 import { UIComponents } from '../ui/symbol-display';
+import { CronUIComponents } from '../ui/cron-display';
 import { playSound } from '../utils/sound';
 import { updateBreakoutBox } from '../ui/symbol-display';
 
@@ -10,7 +11,7 @@ export class BreakoutManager {
     private breakoutSignals: Map<string, BreakoutSignal>;
 
     constructor(
-        private ui: UIComponents,
+        private ui: UIComponents | CronUIComponents,
         symbols: string[]
     ) {
         this.strategies = new Map(symbols.map(s => [s, new BreakoutStrategy()]));

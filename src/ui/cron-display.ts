@@ -158,6 +158,10 @@
          } catch (error) {
              wsLog.log(`Error updating chart for ${symbol}: ${error}`);
          }
+
+         getSignal(symbol: string): BreakoutSignal | null {
+             return this.breakoutSignals.get(symbol) || null;
+         }
      }
 
      function updateBreakoutBox(highestConfidence: any): void {
