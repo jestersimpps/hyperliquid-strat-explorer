@@ -78,6 +78,7 @@ export function createUIComponents(symbol: string): UIComponents {
   columnSpacing: 2,
   columnWidth: [20, 20],
   scrollable: true,
+  alwaysScroll: true,
   scrollbar: {
     ch: ' ',
     track: {
@@ -86,7 +87,9 @@ export function createUIComponents(symbol: string): UIComponents {
     style: {
       inverse: true
     }
-  }
+  },
+  clickable: true,
+  focusable: false
  });
 
  // Handle exit

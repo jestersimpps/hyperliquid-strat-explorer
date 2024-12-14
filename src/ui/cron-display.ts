@@ -79,6 +79,7 @@ export function createCronUIComponents(): CronUIComponents {
   columnSpacing: 2,
   columnWidth: [20, 20],
   scrollable: true,
+  alwaysScroll: true,
   scrollbar: {
     ch: ' ',
     track: {
@@ -87,7 +88,9 @@ export function createCronUIComponents(): CronUIComponents {
     style: {
       inverse: true
     }
-  }
+  },
+  clickable: true,
+  focusable: false
  });
 
  // Create WebSocket log (bottom right)
