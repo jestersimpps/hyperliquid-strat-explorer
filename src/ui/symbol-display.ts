@@ -94,6 +94,7 @@ export function createUIComponents(symbol: string): UIComponents {
   log,
   breakoutBox,
   updateTitle,
+  render: () => screen.render(),
   updateBreakoutBox: (breakoutSignals: Map<string, BreakoutSignal>) =>
    updateBreakoutBox(breakoutBox, breakoutSignals),
   updateChart: (symbol: string, data) => {

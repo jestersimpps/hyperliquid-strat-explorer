@@ -7,7 +7,6 @@ export interface BaseUIComponents {
   screen: Screen;
   log: contrib.Widgets.LogElement;
   breakoutBox: contrib.Widgets.TableElement;
-  render: () => void;
 }
 
 export interface ChartConfig {
