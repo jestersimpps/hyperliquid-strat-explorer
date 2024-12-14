@@ -84,28 +84,34 @@ class BackgroundMonitor {
   console.log("Symbol    Price      24h Change    Volume    Last Update");
   console.log("━".repeat(50));
 
-  for (const [symbol, history] of this.candleHistory.entries()) {
-   if (history.length > 0) {
-    const currentCandle = history[history.length - 1];
-    const dayAgoCandle = history[0];
-    
-    const currentPrice = parseFloat(currentCandle.c);
-    const prevDayPrice = parseFloat(dayAgoCandle.c);
+  // Convert map entries to array and sort by volume
+  const entries = Array.from(this.candleHistory.entries())
+    .filter(([_, history]) => history.length > 0)
+    .map(([symbol, history]) => ({
+      symbol,
+      currentCandle: history[history.length - 1],
+      dayAgoCandle: history[0],
+      volume: parseFloat(history[history.length - 1].v)
+    }))
+    .sort((a, b) => b.volume - a.volume); // Sort by volume descending
+
+  // Display sorted entries
+  for (const entry of entries) {
+    const currentPrice = parseFloat(entry.currentCandle.c);
+    const prevDayPrice = parseFloat(entry.dayAgoCandle.c);
     const priceChange = ((currentPrice - prevDayPrice) / prevDayPrice) * 100;
-    const volume = parseFloat(currentCandle.v);
-    const lastUpdate = new Date(currentCandle.t).toLocaleTimeString();
+    const lastUpdate = new Date(entry.currentCandle.t).toLocaleTimeString();
 
     // Format the output line
-    const symbolPad = symbol.padEnd(9);
+    const symbolPad = entry.symbol.padEnd(9);
     const pricePad = currentPrice.toFixed(2).padEnd(11);
     const changePad = (priceChange >= 0 ? "+" : "") + 
       priceChange.toFixed(2).padEnd(8) + "%";
-    const volumePad = volume.toFixed(2).padEnd(10);
+    const volumePad = entry.volume.toFixed(2).padEnd(10);
 
     console.log(
       `${symbolPad}${pricePad}${changePad}    ${volumePad}    ${lastUpdate}`
     );
-   }
   }
  }
 
