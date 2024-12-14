@@ -44,7 +44,9 @@ class BackgroundMonitor {
      if (lastCandle) {
       this.handleCandleUpdate(lastCandle, candles);
       this.display.logWebSocketActivity(
-       `${new Date().toLocaleTimeString()} - Received ${candles.length} candles for ${symbol}`
+       `${new Date().toLocaleTimeString()} - Received ${
+        candles.length
+       } candles for ${symbol}`
       );
      }
     }
@@ -222,11 +224,6 @@ async function main() {
 
   // Start monitoring
   await monitor.start();
-
-  console.log("Background monitor started successfully");
-  console.log(`Monitoring symbols: ${topSymbols.join(", ")}`);
-  console.log(`Interval: ${interval}`);
-  console.log(`History size: ${maxCandles} candles`);
 
   // Handle graceful shutdown
   process.on("SIGINT", async () => {
