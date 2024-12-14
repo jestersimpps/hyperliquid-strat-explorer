@@ -61,17 +61,9 @@ export class WebSocketHandler {
         } catch (error) {
             // Format and log detailed error information
             const errorMessage = error instanceof Error ? error : new Error(String(error));
-            const formattedError = [
-                `Error processing ${symbol} data:`,
-                errorMessage.message,
-                ...(errorMessage.cause ? [`Cause: ${errorMessage.cause.message || String(errorMessage.cause)}`] : []),
-                ...(errorMessage.stack ? errorMessage.stack.split('\n').slice(1, 3) : [])
-            ].join('\n');
-            
-            this.ui.log.log(formattedError);
-            
+         
             // Retry connection after timeout
-            if (errorMessage.cause?.code === 'UND_ERR_CONNECT_TIMEOUT') {
+            if (errorMessage) {
                 setTimeout(() => {
                     this.ui.log.log(`Retrying connection for ${symbol}...`);
                     this.subscribeToSymbol(symbol, candles[0]?.i || '5m', 300000).catch(retryError => {
