@@ -148,18 +148,11 @@ class BackgroundMonitor {
   }
  }
 
- private analyzeSymbol(
-  symbol: string,
-  history: WsCandle[]
- ): {
-  confidence: number;
-  type: string | null;
-  price: number | null;
-  volumeIncrease: number;
-  timeElapsed: number;
- } {
-  const strategy = this.strategies.get(symbol);
-  if (!strategy || history.length === 0) {
+ private analyzeSymbol(symbol: string, history: WsCandle[]) {
+  this.breakoutManager.processCandles(symbol, history);
+  const signal = this.breakoutManager.getSignal(symbol);
+  
+  if (!signal || history.length === 0) {
    return {
     confidence: 0,
     type: null,
@@ -169,26 +162,12 @@ class BackgroundMonitor {
    };
   }
 
-  const signal = strategy.detectBreakout(history);
-  if (signal) {
-   if (signal.confidence > 0.8) {
-    playSound("breakout");
-   }
-   return {
-    confidence: signal.confidence,
-    type: signal.type,
-    price: signal.price,
-    volumeIncrease: signal.confirmations.volumeIncrease,
-    timeElapsed: signal.confirmations.timeElapsed,
-   };
-  }
-
   return {
-   confidence: 0,
-   type: null,
-   price: null,
-   volumeIncrease: 0,
-   timeElapsed: 0,
+   confidence: signal.confidence,
+   type: signal.type,
+   price: signal.price,
+   volumeIncrease: signal.confirmations.volumeIncrease,
+   timeElapsed: signal.confirmations.timeElapsed,
   };
  }
 }
