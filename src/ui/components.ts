@@ -10,7 +10,7 @@ export interface UIComponents {
  updateTitle: (interval: string, candleCount: number) => void;
 }
 
-export function createUIComponents(symbols: string[]): UIComponents {
+export function createUIComponents(symbol: string): UIComponents {
  // Initialize blessed screen
  const screen = blessed.screen({
   smartCSR: true,
@@ -27,7 +27,7 @@ export function createUIComponents(symbols: string[]): UIComponents {
  // Add chart for the symbol
  const charts = new Map([
   [
-   symbols[0],
+   symbol,
    grid.set(0, 0, 8, 12, contrib.line, {
     style: {
      line: "yellow",
@@ -40,7 +40,7 @@ export function createUIComponents(symbols: string[]): UIComponents {
     legendWidth: 20,
     legendPosition: "top-left", // Try this for legend position
     wholeNumbersOnly: false,
-    label: `${symbols[0]}/USD Price Chart`,
+    label: `${symbol}/USD Price Chart`,
    }),
   ],
  ]);
