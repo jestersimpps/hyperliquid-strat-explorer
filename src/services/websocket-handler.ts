@@ -3,6 +3,7 @@ import { WsCandle } from '../types/websocket';
 import { UIComponents } from '../ui/symbol-display';
 import { ChartManager } from './chart-manager';
 import { BreakoutManager } from './breakout-manager';
+import { updateCandleHistory } from '../utils/candle-processor';
 
 export class WebSocketHandler {
     private candleHistory: Map<string, WsCandle[]> = new Map();
