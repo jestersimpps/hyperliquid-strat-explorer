@@ -80,9 +80,23 @@ Run in development mode:
 npm run dev
 ```
 
-## Screenshot
+## Screenshots
 
+### Main Terminal Interface
 ![Hyperliquid Terminal Interface](screenshot.png)
+
+### Market Monitor (Cron Script)
+![Market Monitor Interface](cron.png)
+
+The cron script (`npm run cron`) provides a market-wide monitoring interface that:
+- Tracks the top 30 coins by 24h volume
+- Displays real-time market statistics including price, volume, and 24h change
+- Shows breakout signals with confidence scoring
+- Includes a detailed analysis panel for the highest confidence breakout
+- Features a price chart that automatically focuses on the most promising setup
+- Logs WebSocket activity for monitoring data flow
+
+This is particularly useful for identifying trading opportunities across the entire market without having to manually watch individual pairs.
 
 ## License
 
