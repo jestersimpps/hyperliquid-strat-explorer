@@ -1,6 +1,6 @@
 import { WsCandle } from '../types/websocket';
-import { UIComponents } from '../ui/symbol-display';
 import { BreakoutStrategy } from '../strategies/breakout';
+import { UIComponents } from '../ui/symbol-display';
 
 export class ChartManager {
     private strategies: Map<string, BreakoutStrategy>;
@@ -17,11 +17,6 @@ export class ChartManager {
             const chart = this.ui.charts.get(symbol);
             if (!chart) {
                 throw new Error(`Chart not found for ${symbol}`);
-            }
-
-            // Ensure we have data to display
-            if (candles.length === 0) {
-                return;
             }
 
             const times = candles.map(c => new Date(c.t).toLocaleTimeString());
@@ -45,10 +40,9 @@ export class ChartManager {
                 resistance.start.y + (resistance.end.y - resistance.start.y) * (i / (times.length - 1))
             );
 
-            // Force chart refresh
             chart.setData([
                 {
-                    title: `${symbol}/USD - ${candles[0].i} - ${candles.length} candles`,
+                    title: `${symbol}/USD`,
                     x: times,
                     y: prices,
                     style: { line: 'yellow' }
