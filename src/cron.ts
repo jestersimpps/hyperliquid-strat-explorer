@@ -149,7 +149,7 @@ class BackgroundMonitor {
  private analyzeSymbol(symbol: string, history: WsCandle[]) {
   this.breakoutManager.processCandles(symbol, history);
   const signal = this.breakoutManager.getSignal(symbol);
-  
+
   if (!signal || history.length === 0) {
    return {
     confidence: 0,
@@ -193,10 +193,13 @@ async function main() {
   const [meta, assetCtxs] = await api.getMetaAndAssetCtxs();
 
   // Sort by 24h volume and take top 10
-  const topSymbols = assetCtxs
-   .sort((a, b) => parseFloat(b.dayNtlVlm) - parseFloat(a.dayNtlVlm))
-   .slice(0, topX)
-   .map((asset, i) => meta.universe[i].name);
+  const topSymbols = [
+   "HYPE",
+   ...assetCtxs
+    .sort((a, b) => parseFloat(b.dayNtlVlm) - parseFloat(a.dayNtlVlm))
+    .slice(0, topX)
+    .map((asset, i) => meta.universe[i].name),
+  ];
 
   console.log("Top symbols by 24h volume:", topSymbols.join(", "));
 

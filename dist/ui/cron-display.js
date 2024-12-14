@@ -76,7 +76,7 @@ function createCronUIComponents() {
         selectedFg: "white",
         selectedBg: "blue",
         interactive: false,
-        label: "Log",
+        label: "Market Monitor",
         width: "50%",
         height: "100%",
         border: { type: "line", fg: "cyan" },
@@ -84,36 +84,22 @@ function createCronUIComponents() {
         columnWidth: [10, 10, 12, 10, 12, 20],
     });
     // Create breakout box (full height right side)
-    const breakoutBox = grid.set(0, 8, 12, 4, contrib.table, {
+    const breakoutBox = grid.set(0, 8, 9, 4, contrib.table, {
         keys: true,
         fg: "white",
         selectedFg: "white",
         selectedBg: "blue",
-        interactive: true,
-        mouse: true,
-        label: "Highest Confidence Breakout",
+        label: "Breakout data",
         border: { type: "line", fg: "cyan" },
         columnSpacing: 2,
         columnWidth: [20, 20],
-        scrollable: true,
-        alwaysScroll: true,
-        scrollbar: {
-            ch: ' ',
-            track: {
-                bg: 'cyan'
-            },
-            style: {
-                inverse: true
-            }
-        },
-        clickable: true,
-        focusable: false
+        focusable: false,
     });
     // Create WebSocket log (bottom of right column)
     const log = grid.set(9, 8, 3, 4, contrib.log, {
         fg: "green",
         selectedFg: "green",
-        label: "WebSocket Activity",
+        label: "Log",
         border: { type: "line", fg: "cyan" },
     });
     // Handle exit
@@ -134,29 +120,31 @@ function createCronUIComponents() {
                 }
                 const strategy = strategies.get(symbol);
                 const { support, resistance } = strategy.analyzeTrendlines(candles);
-                const times = candles.map(c => new Date(c.t).toLocaleTimeString());
-                const prices = candles.map(c => parseFloat(c.c));
-                const supportPoints = times.map((_, i) => support.start.y + (support.end.y - support.start.y) * (i / (times.length - 1)));
-                const resistancePoints = times.map((_, i) => resistance.start.y + (resistance.end.y - resistance.start.y) * (i / (times.length - 1)));
+                const times = candles.map((c) => new Date(c.t).toLocaleTimeString());
+                const prices = candles.map((c) => parseFloat(c.c));
+                const supportPoints = times.map((_, i) => support.start.y +
+                    (support.end.y - support.start.y) * (i / (times.length - 1)));
+                const resistancePoints = times.map((_, i) => resistance.start.y +
+                    (resistance.end.y - resistance.start.y) * (i / (times.length - 1)));
                 chart.setData([
                     {
                         title: `${symbol}/USD - ${candles[0].i} - ${candles.length} candles`,
                         x: times,
                         y: prices,
-                        style: { line: 'yellow' }
+                        style: { line: "yellow" },
                     },
                     {
-                        title: 'Support',
+                        title: "Support",
                         x: times,
                         y: supportPoints,
-                        style: { line: 'green' }
+                        style: { line: "green" },
                     },
                     {
-                        title: 'Resistance',
+                        title: "Resistance",
                         x: times,
                         y: resistancePoints,
-                        style: { line: 'red' }
-                    }
+                        style: { line: "red" },
+                    },
                 ]);
                 const minPrice = Math.min(...prices);
                 const maxPrice = Math.max(...prices);

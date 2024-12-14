@@ -160,10 +160,13 @@ async function main() {
         console.log("Fetching market data...");
         const [meta, assetCtxs] = await api.getMetaAndAssetCtxs();
         // Sort by 24h volume and take top 10
-        const topSymbols = assetCtxs
-            .sort((a, b) => parseFloat(b.dayNtlVlm) - parseFloat(a.dayNtlVlm))
-            .slice(0, topX)
-            .map((asset, i) => meta.universe[i].name);
+        const topSymbols = [
+            "HYPE",
+            ...assetCtxs
+                .sort((a, b) => parseFloat(b.dayNtlVlm) - parseFloat(a.dayNtlVlm))
+                .slice(0, topX)
+                .map((asset, i) => meta.universe[i].name),
+        ];
         console.log("Top symbols by 24h volume:", topSymbols.join(", "));
         // Create monitor
         const monitor = new BackgroundMonitor(wsApi, topSymbols, interval, maxCandles);

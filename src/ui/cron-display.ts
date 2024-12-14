@@ -58,7 +58,7 @@ export function createCronUIComponents(): CronUIComponents {
   selectedFg: "white",
   selectedBg: "blue",
   interactive: false,
-  label: "Log",
+  label: "Market Monitor",
   width: "50%",
   height: "100%",
   border: { type: "line", fg: "cyan" },
@@ -67,37 +67,23 @@ export function createCronUIComponents(): CronUIComponents {
  });
 
  // Create breakout box (full height right side)
- const breakoutBox = grid.set(0, 8, 12, 4, contrib.table, {
+ const breakoutBox = grid.set(0, 8, 9, 4, contrib.table, {
   keys: true,
   fg: "white",
   selectedFg: "white",
   selectedBg: "blue",
-  interactive: true,
-  mouse: true,
-  label: "Highest Confidence Breakout",
+  label: "Breakout data",
   border: { type: "line", fg: "cyan" },
   columnSpacing: 2,
   columnWidth: [20, 20],
-  scrollable: true,
-  alwaysScroll: true,
-  scrollbar: {
-    ch: ' ',
-    track: {
-      bg: 'cyan'
-    },
-    style: {
-      inverse: true
-    }
-  },
-  clickable: true,
-  focusable: false
+  focusable: false,
  });
 
  // Create WebSocket log (bottom of right column)
  const log = grid.set(9, 8, 3, 4, contrib.log, {
   fg: "green",
   selectedFg: "green",
-  label: "WebSocket Activity",
+  label: "Log",
   border: { type: "line", fg: "cyan" },
  });
 
@@ -114,53 +100,57 @@ export function createCronUIComponents(): CronUIComponents {
   render: () => screen.render(),
   updateTable: (data: any[]) => updateTable(table, data),
   updateChart: (symbol: string, candles: WsCandle[]) => {
-    try {
-      if (!strategies.has(symbol)) {
-        strategies.set(symbol, new BreakoutStrategy());
-      }
-      const strategy = strategies.get(symbol)!;
-      const { support, resistance } = strategy.analyzeTrendlines(candles);
-      
-      const times = candles.map(c => new Date(c.t).toLocaleTimeString());
-      const prices = candles.map(c => parseFloat(c.c));
-      
-      const supportPoints = times.map((_, i) => 
-        support.start.y + (support.end.y - support.start.y) * (i / (times.length - 1))
-      );
-      const resistancePoints = times.map((_, i) => 
-        resistance.start.y + (resistance.end.y - resistance.start.y) * (i / (times.length - 1))
-      );
-
-      chart.setData([
-        {
-          title: `${symbol}/USD - ${candles[0].i} - ${candles.length} candles`,
-          x: times,
-          y: prices,
-          style: { line: 'yellow' }
-        },
-        {
-          title: 'Support',
-          x: times,
-          y: supportPoints,
-          style: { line: 'green' }
-        },
-        {
-          title: 'Resistance',
-          x: times,
-          y: resistancePoints,
-          style: { line: 'red' }
-        }
-      ]);
-
-      const minPrice = Math.min(...prices);
-      const maxPrice = Math.max(...prices);
-      const padding = (maxPrice - minPrice) * 0.1;
-      
-      chart.options.minY = minPrice - padding;
-      chart.options.maxY = maxPrice + padding;
-    } catch (error) {
-      log.log(`Error updating chart for ${symbol}: ${error}`);
+   try {
+    if (!strategies.has(symbol)) {
+     strategies.set(symbol, new BreakoutStrategy());
     }
+    const strategy = strategies.get(symbol)!;
+    const { support, resistance } = strategy.analyzeTrendlines(candles);
+
+    const times = candles.map((c) => new Date(c.t).toLocaleTimeString());
+    const prices = candles.map((c) => parseFloat(c.c));
+
+    const supportPoints = times.map(
+     (_, i) =>
+      support.start.y +
+      (support.end.y - support.start.y) * (i / (times.length - 1))
+    );
+    const resistancePoints = times.map(
+     (_, i) =>
+      resistance.start.y +
+      (resistance.end.y - resistance.start.y) * (i / (times.length - 1))
+    );
+
+    chart.setData([
+     {
+      title: `${symbol}/USD - ${candles[0].i} - ${candles.length} candles`,
+      x: times,
+      y: prices,
+      style: { line: "yellow" },
+     },
+     {
+      title: "Support",
+      x: times,
+      y: supportPoints,
+      style: { line: "green" },
+     },
+     {
+      title: "Resistance",
+      x: times,
+      y: resistancePoints,
+      style: { line: "red" },
+     },
+    ]);
+
+    const minPrice = Math.min(...prices);
+    const maxPrice = Math.max(...prices);
+    const padding = (maxPrice - minPrice) * 0.1;
+
+    chart.options.minY = minPrice - padding;
+    chart.options.maxY = maxPrice + padding;
+   } catch (error) {
+    log.log(`Error updating chart for ${symbol}: ${error}`);
+   }
   },
   logWebSocketActivity: (message: string) => log.log(message),
   updateBreakoutBox: (highestConfidence: any) =>
