@@ -32,6 +32,7 @@ export class DisplayManager {
                 text: "green",
                 baseline: "black"
             },
+            lineWidth: 1,
             xLabelPadding: 3,
             xPadding: 5,
             showLegend: true,
@@ -121,19 +122,19 @@ export class DisplayManager {
                     title: `${symbol}/USD - ${candles[0].i} - ${candles.length} candles`,
                     x: times,
                     y: prices,
-                    style: { line: 'yellow' }
+                    style: { line: 'yellow', lineWidth: 1 }
                 },
                 {
                     title: 'Support',
                     x: times,
                     y: supportPoints,
-                    style: { line: 'green' }
+                    style: { line: 'green', lineWidth: 1 }
                 },
                 {
                     title: 'Resistance',
                     x: times,
                     y: resistancePoints,
-                    style: { line: 'red' }
+                    style: { line: 'red', lineWidth: 1 }
                 }
             ]);
             
