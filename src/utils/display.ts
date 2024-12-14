@@ -9,6 +9,7 @@ export class DisplayManager {
     private table: any;
     private chart: any;
     private wsLog: any;
+    private breakoutBox: any;
     private strategies: Map<string, BreakoutStrategy>;
 
     constructor() {
@@ -45,7 +46,7 @@ export class DisplayManager {
         });
 
         // Create the table (bottom left)
-        this.table = this.grid.set(8, 0, 4, 6, contrib.table, {
+        this.table = this.grid.set(8, 0, 4, 4, contrib.table, {
             keys: true,
             fg: 'white',
             selectedFg: 'white',
@@ -59,8 +60,21 @@ export class DisplayManager {
             columnWidth: [10, 10, 12, 10, 12, 12]
         });
 
+        // Create breakout box (bottom middle)
+        this.breakoutBox = this.grid.set(8, 4, 4, 4, contrib.table, {
+            keys: true,
+            fg: 'white',
+            selectedFg: 'white',
+            selectedBg: 'blue',
+            interactive: false,
+            label: 'Highest Confidence Breakout',
+            border: {type: "line", fg: "cyan"},
+            columnSpacing: 2,
+            columnWidth: [20, 20]
+        });
+
         // Create WebSocket log (bottom right)
-        this.wsLog = this.grid.set(8, 6, 4, 6, contrib.log, {
+        this.wsLog = this.grid.set(8, 8, 4, 4, contrib.log, {
             fg: "green",
             selectedFg: "green",
             label: "WebSocket Activity",
@@ -72,6 +86,7 @@ export class DisplayManager {
     }
 
     updateTable(data: any[]): void {
+        // Update main table
         const headers = ['Symbol', 'Price', '24h Change', 'Volume', 'Confidence', 'Signal'];
         const rows = data.map(metric => [
             metric.symbol,
@@ -82,6 +97,27 @@ export class DisplayManager {
             metric.breakoutMetrics.type || 'NONE'
         ]);
 
+        // Find highest confidence entry
+        const highestConfidence = data.reduce((prev, current) => 
+            (current.breakoutMetrics.confidence > prev.breakoutMetrics.confidence) ? current : prev
+        );
+
+        // Update breakout box with detailed info for highest confidence symbol
+        const breakoutData = [
+            ['Symbol', highestConfidence.symbol],
+            ['Price', highestConfidence.currentPrice.toFixed(2)],
+            ['Confidence', (highestConfidence.breakoutMetrics.confidence * 100).toFixed(1) + '%'],
+            ['Signal Type', highestConfidence.breakoutMetrics.type || 'NONE'],
+            ['Volume Increase', (highestConfidence.breakoutMetrics.volumeIncrease * 100).toFixed(1) + '%'],
+            ['Time Elapsed', (highestConfidence.breakoutMetrics.timeElapsed / 60000).toFixed(1) + 'min']
+        ];
+
+        this.breakoutBox.setData({
+            headers: ['Metric', 'Value'],
+            data: breakoutData
+        });
+
+        // Update main table
         this.table.setData({
             headers,
             data: rows
