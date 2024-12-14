@@ -48,7 +48,7 @@ class WebSocketHandler {
             });
         }
         catch (error) {
-            this.ui.log.log(`Error processing ${symbol} data: ${error}`);
+            // Format and log detailed error information
         }
     }
     logLatestCandle(symbol, candle) {

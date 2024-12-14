@@ -5,6 +5,7 @@ import { calculateTimeframe } from "./utils/time";
 import { createCronUIComponents } from "./ui/cron-display";
 import { promptForInterval, promptForTopSymbols } from "./utils/prompt";
 import { BreakoutManager } from "./services/breakout-manager";
+import { playSound } from "./utils/sound";
 
 class BackgroundMonitor {
  private candleHistory: Map<string, WsCandle[]> = new Map();
@@ -177,6 +178,9 @@ async function main() {
   const maxCandles = 300; // Adjust history size as needed
   const topX = await promptForTopSymbols();
 
+  playSound('startup');
+
+  
   // Now create display after prompts
   const display = createCronUIComponents();
   display.log.log("Initializing display...");
@@ -224,7 +228,6 @@ async function main() {
    }
   });
  } catch (error) {
-  display.log.log("Fatal error: " + error);
   process.exit(1);
  }
 }

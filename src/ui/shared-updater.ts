@@ -27,7 +27,6 @@ export function updateBreakoutBox(
           "False Breakout Check",
           signal.confirmations.falseBreakoutCheck ? "✓" : "✗",
         ],
-        ["Multi-Timeframe", signal.confirmations.multiTimeframe ? "✓" : "✗"],
         ["Volatility Check", signal.confirmations.volatilityCheck ? "✓" : "✗"],
         ["Time Elapsed", `${(signal.confirmations.timeElapsed / 60000).toFixed(1)}min`],
         ["Confidence", `${(signal.confidence * 100).toFixed(1)}%`],
@@ -50,7 +49,6 @@ export function updateBreakoutBox(
         "False Breakout Check",
         data.breakoutMetrics.falseBreakoutCheck ? "✓" : "✗",
       ],
-      ["Multi-Timeframe", data.breakoutMetrics.multiTimeframe ? "✓" : "✗"],
       ["Volatility Check", data.breakoutMetrics.volatilityCheck ? "✓" : "✗"],
       [
         "Time Elapsed",

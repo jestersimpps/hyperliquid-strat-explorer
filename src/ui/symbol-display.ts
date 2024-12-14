@@ -2,7 +2,12 @@ import * as blessed from "blessed";
 import * as contrib from "blessed-contrib";
 import { BreakoutSignal } from "../types/breakout";
 import { BaseUIComponents, CandleData } from "../types/ui";
-import { createBaseScreen, createGrid, getDefaultChartConfig, setupExitHandler } from "../utils/ui-config";
+import {
+ createBaseScreen,
+ createGrid,
+ getDefaultChartConfig,
+ setupExitHandler,
+} from "../utils/ui-config";
 import { updateBreakoutBox } from "./shared-updater";
 
 export interface UIComponents extends BaseUIComponents {
@@ -64,26 +69,14 @@ export function createUIComponents(symbol: string): UIComponents {
   fg: "green",
   selectedFg: "green",
   label: "Log",
-  mouse: true,
-  scrollable: true,
-  alwaysScroll: true,
-  scrollbar: {
-    ch: ' ',
-    track: {
-      bg: 'cyan'
-    },
-    style: {
-      inverse: true
-    }
-  },
   style: {
-    fg: "red",
-    focus: {
-      border: {
-        fg: "red"
-      }
-    }
-  }
+   fg: "white",
+   focus: {
+    border: {
+     fg: "white",
+    },
+   },
+  },
  });
 
  // Add breakout confirmation box
@@ -92,24 +85,9 @@ export function createUIComponents(symbol: string): UIComponents {
   fg: "white",
   selectedFg: "white",
   selectedBg: "blue",
-  interactive: true,
-  mouse: true,
   label: "Breakout Analysis",
   columnSpacing: 2,
   columnWidth: [20, 20],
-  scrollable: true,
-  alwaysScroll: true,
-  scrollbar: {
-    ch: ' ',
-    track: {
-      bg: 'cyan'
-    },
-    style: {
-      inverse: true
-    }
-  },
-  clickable: true,
-  focusable: false
  });
 
  // Handle exit
@@ -136,23 +114,23 @@ export function createUIComponents(symbol: string): UIComponents {
    if (chart) {
     chart.setData([
      {
-       title: "Price",
-       x: data.times,
-       y: data.prices,
-       style: { line: "yellow" }
+      title: "Price",
+      x: data.times,
+      y: data.prices,
+      style: { line: "yellow" },
      },
      {
-       title: "Support",
-       x: data.times,
-       y: data.support,
-       style: { line: "green" }
+      title: "Support",
+      x: data.times,
+      y: data.support,
+      style: { line: "green" },
      },
      {
-       title: "Resistance", 
-       x: data.times,
-       y: data.resistance,
-       style: { line: "red" }
-     }
+      title: "Resistance",
+      x: data.times,
+      y: data.resistance,
+      style: { line: "red" },
+     },
     ]);
    }
   },

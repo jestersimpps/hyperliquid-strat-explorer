@@ -23,8 +23,8 @@ export class BreakoutStrategy {
   private checkPriceAction(candle: WsCandle, level: number, type: SignalType): boolean {
     const close = parseFloat(candle.c);
     return type === 'RESISTANCE_BREAK' ? 
-      close > level && parseFloat(candle.o) < level :
-      close < level && parseFloat(candle.o) > level;
+      close > level :
+      close < level;
   }
 
   private detectTrend(candles: WsCandle[], periods: number = 20): 'UP' | 'DOWN' | 'SIDEWAYS' {
@@ -99,7 +99,7 @@ export class BreakoutStrategy {
     return atr > volatilityThreshold;
   }
 
-  public detectBreakout(candles: WsCandle[]): BreakoutSignal | null {
+  public detectBreakout(symbol: string, candles: WsCandle[]): BreakoutSignal | null {
     if (candles.length < 20) return null;
 
     const { support, resistance } = this.analyzeTrendlines(candles);
@@ -133,7 +133,7 @@ export class BreakoutStrategy {
 
     if (!breakoutType) return null;
 
-    // Validate breakout
+    // Validate breakout                           
     const volumeConfirmation = this.checkVolumeConfirmation(currentVolume, avgVolume);
     const priceActionConfirmation = this.checkPriceAction(currentCandle, level, breakoutType);
     const trendAlignmentConfirmation = (
@@ -147,7 +147,7 @@ export class BreakoutStrategy {
     // Calculate confidence score
     const volatilityConfirmation = this.checkVolatility(candles);
     // Calculate or get initial breakout timestamp
-    const breakoutKey = `${breakoutType}-${level}`;
+    const breakoutKey = `${breakoutType}-${symbol}`;
     if (!this.breakoutTimestamps.has(breakoutKey)) {
       this.breakoutTimestamps.set(breakoutKey, currentCandle.t);
     }
@@ -160,20 +160,19 @@ export class BreakoutStrategy {
       priceAction: priceActionConfirmation,
       trendAlignment: trendAlignmentConfirmation,
       falseBreakoutCheck: falseBreakoutConfirmation,
-      multiTimeframe: true,
       volatilityCheck: volatilityConfirmation,
       timeElapsed: timeElapsed
     };
 
-    const confidence = Object.values(confirmations).filter(Boolean).length / 8;
+    const confidence = Object.values(confirmations).filter(Boolean).length / 7;
 
     // Clear breakout timestamp if confidence drops too low
-    if (confidence < 0.2) {
+    if (confidence < 0.3) {
       this.breakoutTimestamps.delete(breakoutKey);
       return null;
     }
 
-    if (confidence >= 0.1) {  // Require at least 10% confidence
+    if (confidence >= 0.5) {  // Require at least 10% confidence
       return {
         type: breakoutType,
         price: currentPrice,

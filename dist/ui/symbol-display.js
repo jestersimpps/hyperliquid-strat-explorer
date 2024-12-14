@@ -74,6 +74,14 @@ function createUIComponents(symbol) {
         fg: "green",
         selectedFg: "green",
         label: "Log",
+        style: {
+            fg: "white",
+            focus: {
+                border: {
+                    fg: "white",
+                },
+            },
+        },
     });
     // Add breakout confirmation box
     const breakoutBox = grid.set(8, 6, 4, 6, contrib.table, {
@@ -81,24 +89,9 @@ function createUIComponents(symbol) {
         fg: "white",
         selectedFg: "white",
         selectedBg: "blue",
-        interactive: true,
-        mouse: true,
         label: "Breakout Analysis",
         columnSpacing: 2,
         columnWidth: [20, 20],
-        scrollable: true,
-        alwaysScroll: true,
-        scrollbar: {
-            ch: ' ',
-            track: {
-                bg: 'cyan'
-            },
-            style: {
-                inverse: true
-            }
-        },
-        clickable: true,
-        focusable: false
     });
     // Handle exit
     screen.key(["escape", "q", "C-c"], function () {
@@ -124,20 +117,20 @@ function createUIComponents(symbol) {
                         title: "Price",
                         x: data.times,
                         y: data.prices,
-                        style: { line: "yellow" }
+                        style: { line: "yellow" },
                     },
                     {
                         title: "Support",
                         x: data.times,
                         y: data.support,
-                        style: { line: "green" }
+                        style: { line: "green" },
                     },
                     {
                         title: "Resistance",
                         x: data.times,
                         y: data.resistance,
-                        style: { line: "red" }
-                    }
+                        style: { line: "red" },
+                    },
                 ]);
             }
         },

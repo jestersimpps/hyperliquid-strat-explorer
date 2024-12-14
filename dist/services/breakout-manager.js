@@ -13,7 +13,7 @@ class BreakoutManager {
     }
     constructor(ui, symbols) {
         this.ui = ui;
-        this.strategies = new Map(symbols.map(s => [s, new breakout_1.BreakoutStrategy()]));
+        this.strategies = new Map(symbols.map((s) => [s, new breakout_1.BreakoutStrategy()]));
         this.breakoutSignals = new Map();
     }
     processCandles(symbol, candles) {
@@ -21,11 +21,11 @@ class BreakoutManager {
         if (!strategy) {
             throw new Error(`Strategy not found for ${symbol}`);
         }
-        const breakoutSignal = strategy.detectBreakout(candles);
+        const breakoutSignal = strategy.detectBreakout(symbol, candles);
         if (breakoutSignal) {
             this.breakoutSignals.set(symbol, breakoutSignal);
-            if (breakoutSignal.confidence > 0.8) {
-                (0, sound_1.playSound)('breakout');
+            if (breakoutSignal.confidence > 0.7) {
+                (0, sound_1.playSound)("breakout");
                 this.ui.screen.log(`🚨 HIGH CONFIDENCE BREAKOUT on ${symbol}!\n` +
                     `Type: ${breakoutSignal.type} | ` +
                     `Price: ${breakoutSignal.price.toFixed(2)} | ` +
