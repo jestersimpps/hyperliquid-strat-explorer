@@ -104,16 +104,28 @@ class BackgroundMonitor {
 async function main() {
     try {
         // Configuration
-        const symbols = ['BTC', 'ETH', 'SOL']; // Add more symbols as needed
         const interval = '5m';                 // Adjust interval as needed
-        const maxCandles = 300;                 // Adjust history size as needed
+        const maxCandles = 300;                // Adjust history size as needed
 
         // Initialize APIs
+        console.log('Initializing APIs...');
         const api = new HyperliquidInfoAPI();
         const wsApi = new HyperliquidWebSocketAPI(api);
 
+        // Fetch top symbols by volume
+        console.log('Fetching market data...');
+        const markets = await api.getMarkets();
+        
+        // Sort markets by 24h volume and take top 10
+        const topSymbols = markets
+            .sort((a, b) => parseFloat(b.volume24h) - parseFloat(a.volume24h))
+            .slice(0, 10)
+            .map(market => market.coin);
+
+        console.log('Top 10 symbols by 24h volume:', topSymbols.join(', '));
+
         // Create monitor
-        const monitor = new BackgroundMonitor(wsApi, symbols, interval, maxCandles);
+        const monitor = new BackgroundMonitor(wsApi, topSymbols, interval, maxCandles);
 
         // Connect to WebSocket
         await wsApi.connect();
