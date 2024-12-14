@@ -4,12 +4,13 @@ import { WsCandle } from "./types/websocket";
 import { BreakoutStrategy } from "./strategies/breakout";
 import { playSound } from "./utils/sound";
 import { calculateTimeframe } from "./utils/time";
-import Table from 'cli-table3';
+import { DisplayManager } from "./utils/display";
 
 class BackgroundMonitor {
  private candleHistory: Map<string, WsCandle[]> = new Map();
  private strategies: Map<string, BreakoutStrategy> = new Map();
  private breakoutTimestamps: Map<string, number> = new Map();
+ private display: DisplayManager;
 
  constructor(
   private wsApi: HyperliquidWebSocketAPI,
@@ -17,6 +18,7 @@ class BackgroundMonitor {
   private interval: string,
   private maxCandles: number
  ) {
+  this.display = new DisplayManager();
   // Initialize strategies and trade history
   this.symbols.forEach((symbol) => {
    this.strategies.set(symbol, new BreakoutStrategy());
@@ -113,44 +115,19 @@ class BackgroundMonitor {
    })
    .sort((a, b) => b.breakoutMetrics.confidence - a.breakoutMetrics.confidence);
 
-  // Then display the results
-  console.clear();
-  console.log("\n📊 Market Statistics");
-
-  const table = new Table({
-    head: ['Symbol', 'Price', '24h Change', 'Volume', 'Confidence', 'Signal', 'Last Update'],
-    style: {
-      head: ['cyan'],
-      border: ['grey']
-    },
-    chars: {
-      'top': '═', 'top-mid': '╤', 'top-left': '╔', 'top-right': '╗',
-      'bottom': '═', 'bottom-mid': '╧', 'bottom-left': '╚', 'bottom-right': '╝',
-      'left': '║', 'left-mid': '╟', 'mid': '─', 'mid-mid': '┼',
-      'right': '║', 'right-mid': '╢', 'middle': '│'
+  // Update the display
+  this.display.updateTable(marketMetrics);
+  
+  // Update chart with highest confidence symbol
+  if (marketMetrics.length > 0) {
+    const highestConfidenceSymbol = marketMetrics[0].symbol;
+    const candleData = this.candleHistory.get(highestConfidenceSymbol);
+    if (candleData) {
+      this.display.updateChart(highestConfidenceSymbol, candleData);
     }
-  });
-
-  for (const metric of marketMetrics) {
-    const confidenceValue = (metric.breakoutMetrics.confidence * 100).toFixed(1) + '%';
-    const confidenceStr = metric.breakoutMetrics.confidence > 0.8 
-      ? `\x1b[32m${confidenceValue}\x1b[0m` // Green for high confidence
-      : metric.breakoutMetrics.confidence > 0.5 
-        ? `\x1b[33m${confidenceValue}\x1b[0m` // Yellow for medium confidence
-        : confidenceValue;
-
-    table.push([
-      metric.symbol,
-      metric.currentPrice.toFixed(2),
-      (metric.priceChange >= 0 ? '+' : '') + metric.priceChange.toFixed(2) + '%',
-      (metric.volumeUSD / 1000000).toFixed(2) + 'M',
-      confidenceStr,
-      metric.breakoutMetrics.type || 'NONE',
-      metric.lastUpdate
-    ]);
   }
-
-  console.log(table.toString());
+  
+  this.display.render();
  }
 
  private analyzeSymbol(symbol: string, history: WsCandle[]): { 
