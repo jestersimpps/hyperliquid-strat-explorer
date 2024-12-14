@@ -87,13 +87,16 @@ class BackgroundMonitor {
   // Convert map entries to array and sort by volume
   const entries = Array.from(this.candleHistory.entries())
     .filter(([_, history]) => history.length > 0)
-    .map(([symbol, history]) => ({
-      symbol,
-      currentCandle: history[history.length - 1],
-      dayAgoCandle: history[0],
-      volume: parseFloat(history[history.length - 1].v)
-    }))
-    .sort((a, b) => b.volume - a.volume); // Sort by volume descending
+    .map(([symbol, history]) => {
+      const currentCandle = history[history.length - 1];
+      return {
+        symbol,
+        currentCandle,
+        dayAgoCandle: history[0],
+        volumeUSD: parseFloat(currentCandle.v) * parseFloat(currentCandle.c)
+      };
+    })
+    .sort((a, b) => b.volumeUSD - a.volumeUSD); // Sort by USD volume descending
 
   // Display sorted entries
   for (const entry of entries) {
@@ -107,7 +110,7 @@ class BackgroundMonitor {
     const pricePad = currentPrice.toFixed(2).padEnd(11);
     const changePad = (priceChange >= 0 ? "+" : "") + 
       priceChange.toFixed(2).padEnd(8) + "%";
-    const volumePad = entry.volume.toFixed(2).padEnd(10);
+    const volumePad = (entry.volumeUSD / 1000000).toFixed(2).padEnd(10) + "M";
 
     console.log(
       `${symbolPad}${pricePad}${changePad}    ${volumePad}    ${lastUpdate}`
