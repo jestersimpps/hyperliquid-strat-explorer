@@ -46,7 +46,7 @@ export class DisplayManager {
         });
 
         // Create the table (bottom left)
-        this.table = this.grid.set(8, 0, 4, 4, contrib.table, {
+        this.table = this.grid.set(8, 0, 4, 6, contrib.table, {
             keys: true,
             fg: 'white',
             selectedFg: 'white',
@@ -61,7 +61,7 @@ export class DisplayManager {
         });
 
         // Create breakout box (bottom middle)
-        this.breakoutBox = this.grid.set(8, 4, 4, 4, contrib.table, {
+        this.breakoutBox = this.grid.set(8, 6, 4, 3, contrib.table, {
             keys: true,
             fg: 'white',
             selectedFg: 'white',
@@ -74,7 +74,7 @@ export class DisplayManager {
         });
 
         // Create WebSocket log (bottom right)
-        this.wsLog = this.grid.set(8, 8, 4, 4, contrib.log, {
+        this.wsLog = this.grid.set(8, 9, 4, 3, contrib.log, {
             fg: "green",
             selectedFg: "green",
             label: "WebSocket Activity",
