@@ -1,6 +1,7 @@
 import * as blessed from 'blessed';
 import * as contrib from 'blessed-contrib';
 import { WsCandle } from '../types/websocket';
+import { BreakoutStrategy } from '../strategies/breakout';
 
 export class DisplayManager {
     private screen: blessed.Widgets.Screen;
@@ -8,8 +9,10 @@ export class DisplayManager {
     private table: any;
     private chart: any;
     private wsLog: any;
+    private strategies: Map<string, BreakoutStrategy>;
 
     constructor() {
+        this.strategies = new Map();
         this.screen = blessed.screen({
             smartCSR: true,
             title: 'Market Monitor'
@@ -85,54 +88,61 @@ export class DisplayManager {
     }
 
     updateChart(symbol: string, candles: WsCandle[]): void {
-        const times = candles.map(c => new Date(c.t).toLocaleTimeString());
-        const prices = candles.map(c => parseFloat(c.c));
-
-        // Calculate support and resistance
-        const sortedPrices = [...prices].sort((a, b) => a - b);
-        const support = sortedPrices[Math.floor(sortedPrices.length * 0.2)]; // 20th percentile
-        const resistance = sortedPrices[Math.floor(sortedPrices.length * 0.8)]; // 80th percentile
-
-        const supportLine = new Array(times.length).fill(support);
-        const resistanceLine = new Array(times.length).fill(resistance);
-
-        // Calculate y-axis range with padding
-        const allValues = [...prices, support, resistance];
-        const minValue = Math.min(...allValues);
-        const maxValue = Math.max(...allValues);
-        const padding = (maxValue - minValue) * 0.1; // 10% padding
-
-        this.chart.options.minY = minValue - padding;
-        this.chart.options.maxY = maxValue + padding;
-
-        const data = [
-            {
-                title: symbol,
-                x: times,
-                y: prices,
-                style: {
-                    line: 'yellow'
-                }
-            },
-            {
-                title: 'Support',
-                x: times,
-                y: supportLine,
-                style: {
-                    line: 'green'
-                }
-            },
-            {
-                title: 'Resistance',
-                x: times,
-                y: resistanceLine,
-                style: {
-                    line: 'red'
-                }
+        try {
+            // Ensure we have data to display
+            if (candles.length === 0) {
+                return;
             }
-        ];
 
-        this.chart.setData(data);
+            const times = candles.map(c => new Date(c.t).toLocaleTimeString());
+            const prices = candles.map(c => parseFloat(c.c));
+            
+            const minPrice = Math.min(...prices);
+            const maxPrice = Math.max(...prices);
+            const padding = (maxPrice - minPrice) * 0.1;
+
+            // Get or create strategy for this symbol
+            if (!this.strategies.has(symbol)) {
+                this.strategies.set(symbol, new BreakoutStrategy());
+            }
+            const strategy = this.strategies.get(symbol)!;
+            
+            const { support, resistance } = strategy.analyzeTrendlines(candles);
+            
+            const supportPoints = times.map((_, i) => 
+                support.start.y + (support.end.y - support.start.y) * (i / (times.length - 1))
+            );
+            const resistancePoints = times.map((_, i) => 
+                resistance.start.y + (resistance.end.y - resistance.start.y) * (i / (times.length - 1))
+            );
+
+            this.chart.setData([
+                {
+                    title: `${symbol}/USD - ${candles[0].i} - ${candles.length} candles`,
+                    x: times,
+                    y: prices,
+                    style: { line: 'yellow' }
+                },
+                {
+                    title: 'Support',
+                    x: times,
+                    y: supportPoints,
+                    style: { line: 'green' }
+                },
+                {
+                    title: 'Resistance',
+                    x: times,
+                    y: resistancePoints,
+                    style: { line: 'red' }
+                }
+            ]);
+            
+            this.chart.options.minY = minPrice - padding;
+            this.chart.options.maxY = maxPrice + padding;
+
+        } catch (error) {
+            this.wsLog.log(`Error updating chart for ${symbol}: ${error}`);
+        }
     }
 
     logWebSocketActivity(message: string): void {
