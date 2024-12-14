@@ -37,7 +37,7 @@ exports.createUIComponents = createUIComponents;
 exports.updateBreakoutBox = updateBreakoutBox;
 const blessed = __importStar(require("blessed"));
 const contrib = __importStar(require("blessed-contrib"));
-function createUIComponents(symbols) {
+function createUIComponents(symbol) {
     // Initialize blessed screen
     const screen = blessed.screen({
         smartCSR: true,
@@ -52,7 +52,7 @@ function createUIComponents(symbols) {
     // Add chart for the symbol
     const charts = new Map([
         [
-            symbols[0],
+            symbol,
             grid.set(0, 0, 8, 12, contrib.line, {
                 style: {
                     line: "yellow",
@@ -65,7 +65,7 @@ function createUIComponents(symbols) {
                 legendWidth: 20,
                 legendPosition: "top-left", // Try this for legend position
                 wholeNumbersOnly: false,
-                label: `${symbols[0]}/USD Price Chart`,
+                label: `${symbol}/USD Price Chart`,
             }),
         ],
     ]);

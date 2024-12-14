@@ -5,6 +5,7 @@ import { BreakoutStrategy } from "./strategies/breakout";
 import { playSound } from "./utils/sound";
 import { calculateTimeframe } from "./utils/time";
 import { DisplayManager } from "./utils/display";
+import { promptForInterval } from "./utils/prompt";
 
 const TOP_X = 30;
 class BackgroundMonitor {

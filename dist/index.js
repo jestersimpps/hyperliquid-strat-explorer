@@ -11,6 +11,8 @@ const prompt_1 = require("./utils/prompt");
 const time_1 = require("./utils/time");
 async function main() {
     try {
+        // Clear console
+        console.clear();
         // Play startup sound
         (0, sound_1.playSound)('startup');
         // Get user inputs
@@ -19,7 +21,7 @@ async function main() {
         const maxCandles = await (0, prompt_1.promptForMaxCandles)();
         const timeframeMs = (0, time_1.calculateTimeframe)(interval, maxCandles);
         // Initialize components
-        const ui = (0, components_1.createUIComponents)([symbol]);
+        const ui = (0, components_1.createUIComponents)(symbol);
         const api = new info_1.HyperliquidInfoAPI();
         const wsApi = new websocket_1.HyperliquidWebSocketAPI(api);
         const chartManager = new chart_manager_1.ChartManager(ui, [symbol]);
