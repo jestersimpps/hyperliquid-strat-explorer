@@ -10,6 +10,10 @@ export class BreakoutManager {
     private strategies: Map<string, BreakoutStrategy>;
     private breakoutSignals: Map<string, BreakoutSignal>;
 
+    getSignal(symbol: string): BreakoutSignal | null {
+        return this.breakoutSignals.get(symbol) || null;
+    }
+
     constructor(
         private ui: UIComponents | CronUIComponents,
         symbols: string[]
