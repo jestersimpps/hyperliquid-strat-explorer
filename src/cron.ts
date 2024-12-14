@@ -56,10 +56,15 @@ class BackgroundMonitor {
    //  console.log(`Subscribed to ${symbol} ${this.interval} candles`);
   }
 
-  // Start analysis loop
+  // Start analysis loop for market stats
   setInterval(() => {
    this.logMarketStats();
   }, 1000); // Run analysis every second
+
+  // Start breakout box update loop
+  setInterval(() => {
+   this.updateBreakoutBox();
+  }, 100); // Update breakout box more frequently
  }
 
  private handleCandleUpdate(symbol: string, candles: WsCandle[]): void {
@@ -91,9 +96,8 @@ class BackgroundMonitor {
   }
  }
 
- private logMarketStats(): void {
-  // First calculate all metrics
-  const marketMetrics = Array.from(this.candleHistory.entries())
+ private getMarketMetrics() {
+  return Array.from(this.candleHistory.entries())
    .filter(([_, history]) => history.length > 0)
    .map(([symbol, history]) => {
     const currentCandle = history[history.length - 1];
@@ -122,7 +126,11 @@ class BackgroundMonitor {
     };
    })
    .sort((a, b) => b.breakoutMetrics.confidence - a.breakoutMetrics.confidence);
+ }
 
+ private logMarketStats(): void {
+  const marketMetrics = this.getMarketMetrics();
+  
   // Update the display
   this.display.updateTable(marketMetrics);
 
@@ -136,6 +144,33 @@ class BackgroundMonitor {
   }
 
   this.display.render();
+ }
+
+ private updateBreakoutBox(): void {
+  const marketMetrics = this.getMarketMetrics();
+  if (marketMetrics.length > 0) {
+   const highestConfidence = marketMetrics[0];
+   const breakoutData = [
+    ['Symbol', highestConfidence.symbol],
+    ['Volume Increase', `${(highestConfidence.breakoutMetrics.volumeIncrease * 100).toFixed(1)}%`],
+    ['Volume Confirmation', highestConfidence.breakoutMetrics.volumeConfirmation ? '✓' : '✗'],
+    ['Price Action', highestConfidence.breakoutMetrics.priceAction ? '✓' : '✗'],
+    ['Trend Alignment', highestConfidence.breakoutMetrics.trendAlignment ? '✓' : '✗'],
+    ['False Breakout Check', highestConfidence.breakoutMetrics.falseBreakoutCheck ? '✓' : '✗'],
+    ['Multi-Timeframe', highestConfidence.breakoutMetrics.multiTimeframe ? '✓' : '✗'],
+    ['Volatility Check', highestConfidence.breakoutMetrics.volatilityCheck ? '✓' : '✗'],
+    ['Time Elapsed', `${(highestConfidence.breakoutMetrics.timeElapsed / 60000).toFixed(1)}min`],
+    ['Confidence', `${(highestConfidence.breakoutMetrics.confidence * 100).toFixed(1)}%`],
+    ['Signal Type', highestConfidence.breakoutMetrics.type || 'NONE']
+   ];
+
+   this.display.breakoutBox.setData({
+    headers: ['Indicator', 'Status'],
+    data: breakoutData
+   });
+
+   this.display.render();
+  }
  }
 
  private analyzeSymbol(
