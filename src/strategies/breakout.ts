@@ -5,7 +5,7 @@ import { Line } from "../utils/support-resistance";
 
 export class BreakoutStrategy {
   private readonly volumeThreshold = 1.5; // 150% of average volume
-  private readonly priceConfirmationPeriods = 3; // Number of candles to confirm breakout
+  private readonly priceConfirmationPeriods = 3; // TODO: Number of candles to confirm breakout
   private breakoutTimestamps: Map<string, number> = new Map(); // Store breakout timestamps
 
   constructor() {
@@ -154,10 +154,10 @@ export class BreakoutStrategy {
       timeElapsed: timeElapsed
     };
 
-    const confidence = Object.values(confirmations).filter(Boolean).length / 7;
+    const confidence = Object.values(confirmations).filter(Boolean).length / 8;
 
     // Clear breakout timestamp if confidence drops too low
-    if (confidence < 0.1) {
+    if (confidence < 0.2) {
       this.breakoutTimestamps.delete(breakoutKey);
       return null;
     }
@@ -182,7 +182,6 @@ export class BreakoutStrategy {
 
     // Keep minimum of latest 50 candles
     const minCandles = 50;
-    const latestCandles = candles.slice(-minCandles);
     
     // Start with full array and decrease size
     let bestSupport = { start: { x: 0, y: 0 }, end: { x: 0, y: 0 }, strength: 0 };
