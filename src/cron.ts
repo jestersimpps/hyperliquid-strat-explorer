@@ -6,11 +6,10 @@ import { playSound } from "./utils/sound";
 import { calculateTimeframe } from "./utils/time";
 import { DisplayManager } from "./utils/display";
 
-const TOP_X = 5;
+const TOP_X = 30;
 class BackgroundMonitor {
  private candleHistory: Map<string, WsCandle[]> = new Map();
  private strategies: Map<string, BreakoutStrategy> = new Map();
- private breakoutTimestamps: Map<string, number> = new Map();
  private display: DisplayManager;
 
  constructor(
@@ -46,7 +45,7 @@ class BackgroundMonitor {
     }
    );
 
-   console.log(`Subscribed to ${symbol} ${this.interval} candles`);
+   //  console.log(`Subscribed to ${symbol} ${this.interval} candles`);
   }
 
   // Start analysis loop
@@ -187,7 +186,7 @@ async function main() {
 
   // Initialize display
   console.log("Initializing display...");
-  
+
   // Initialize APIs
   console.log("Initializing APIs...");
   const api = new HyperliquidInfoAPI();
