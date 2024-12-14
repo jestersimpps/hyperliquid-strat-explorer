@@ -41,7 +41,12 @@ class BackgroundMonitor {
      const lastCandle = candles.length
       ? candles[candles.length - 1].s
       : undefined;
-     if (lastCandle) this.handleCandleUpdate(lastCandle, candles);
+     if (lastCandle) {
+      this.handleCandleUpdate(lastCandle, candles);
+      this.display.logWebSocketActivity(
+       `${new Date().toLocaleTimeString()} - Received ${candles.length} candles for ${symbol}`
+      );
+     }
     }
    );
 

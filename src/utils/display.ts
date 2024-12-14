@@ -7,6 +7,7 @@ export class DisplayManager {
     private grid: any;
     private table: any;
     private chart: any;
+    private wsLog: any;
 
     constructor() {
         this.screen = blessed.screen({
@@ -39,8 +40,8 @@ export class DisplayManager {
             maxY: 0
         });
 
-        // Create the table (bottom)
-        this.table = this.grid.set(8, 0, 4, 12, contrib.table, {
+        // Create the table (bottom left)
+        this.table = this.grid.set(8, 0, 4, 6, contrib.table, {
             keys: true,
             fg: 'white',
             selectedFg: 'white',
@@ -52,6 +53,14 @@ export class DisplayManager {
             border: {type: "line", fg: "cyan"},
             columnSpacing: 3,
             columnWidth: [10, 10, 12, 10, 12, 12]
+        });
+
+        // Create WebSocket log (bottom right)
+        this.wsLog = this.grid.set(8, 6, 4, 6, contrib.log, {
+            fg: "green",
+            selectedFg: "green",
+            label: "WebSocket Activity",
+            border: {type: "line", fg: "cyan"}
         });
 
         // Handle exit
@@ -124,6 +133,10 @@ export class DisplayManager {
         ];
 
         this.chart.setData(data);
+    }
+
+    logWebSocketActivity(message: string): void {
+        this.wsLog.log(message);
     }
 
     render(): void {
