@@ -120,7 +120,7 @@ async function main() {
         const topSymbols = assetCtxs
             .sort((a, b) => parseFloat(b.dayNtlVlm) - parseFloat(a.dayNtlVlm))
             .slice(0, 10)
-            .map(asset => asset.coin);
+            .map(asset => asset.asset);
 
         console.log('Top 10 symbols by 24h volume:', topSymbols.join(', '));
 
