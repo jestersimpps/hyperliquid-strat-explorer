@@ -2,12 +2,7 @@ import * as blessed from "blessed";
 import * as contrib from "blessed-contrib";
 import { WsCandle } from "../types/websocket";
 import { BreakoutStrategy } from "../strategies/breakout";
-import { BreakoutSignal } from "../types/breakout";
-import {
- updateTable,
- updateChart,
- updateBreakoutBox,
-} from "./cron-display-updater";
+import { updateBreakoutBox, updateChart } from "./shared-updater";
 
 export interface CronUIComponents {
  screen: blessed.Widgets.Screen;
@@ -115,4 +110,31 @@ export function createCronUIComponents(): CronUIComponents {
   updateBreakoutBox: (highestConfidence: any) =>
    updateBreakoutBox(breakoutBox, highestConfidence),
  };
+}
+
+export function updateTable(
+ table: contrib.Widgets.TableElement,
+ data: any[]
+): void {
+ const headers = [
+  "Symbol",
+  "Price",
+  "24h Change",
+  "Volume",
+  "Confidence",
+  "Signal",
+ ];
+ const rows = data.map((metric) => [
+  metric.symbol,
+  metric.currentPrice.toFixed(2),
+  (metric.priceChange >= 0 ? "+" : "") + metric.priceChange.toFixed(2) + "%",
+  (metric.volumeUSD / 1000000).toFixed(2) + "M",
+  (metric.breakoutMetrics.confidence * 100).toFixed(1) + "%",
+  metric.breakoutMetrics.type || "NONE",
+ ]);
+
+ table.setData({
+  headers,
+  data: rows,
+ });
 }
