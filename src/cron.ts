@@ -82,8 +82,8 @@ class BackgroundMonitor {
   console.clear();
   console.log("\n📊 Market Statistics");
   console.log("━".repeat(60));
-  console.log("Symbol    Price      24h Change    Volume    Last Update");
-  console.log("━".repeat(60));
+  console.log("Symbol    Price      24h Change    Volume    Confidence  Signal    Last Update");
+  console.log("━".repeat(80));
 
   // Convert map entries to array and sort by volume
   const entries = Array.from(this.candleHistory.entries())
@@ -113,38 +113,62 @@ class BackgroundMonitor {
     (priceChange >= 0 ? "+" : "") + priceChange.toFixed(2).padEnd(8) + "%";
    const volumePad = (entry.volumeUSD / 1000000).toFixed(2).padEnd(10) + "M";
 
+   const breakoutMetrics = this.analyzeSymbol(entry.symbol, this.candleHistory.get(entry.symbol) || []);
+   const confidencePad = (breakoutMetrics.confidence * 100).toFixed(1).padEnd(8) + "%";
+   const signalPad = (breakoutMetrics.type || "NONE").padEnd(10);
+   
+   // Add visual indicator for high confidence signals
+   const confidenceStr = breakoutMetrics.confidence > 0.8 
+     ? `\x1b[32m${confidencePad}\x1b[0m` // Green for high confidence
+     : breakoutMetrics.confidence > 0.5 
+       ? `\x1b[33m${confidencePad}\x1b[0m` // Yellow for medium confidence
+       : confidencePad;
+
    console.log(
-    `${symbolPad}${pricePad}${changePad}    ${volumePad}    ${lastUpdate}`
+    `${symbolPad}${pricePad}${changePad}    ${volumePad}    ${confidenceStr}${signalPad}${lastUpdate}`
    );
   }
  }
 
- private analyzeAllSymbols(): void {
-  for (const [symbol, history] of this.candleHistory.entries()) {
+ private analyzeSymbol(symbol: string, history: WsCandle[]): { 
+   confidence: number;
+   type: string | null;
+   price: number | null;
+   volumeIncrease: number;
+   timeElapsed: number;
+ } {
    const strategy = this.strategies.get(symbol);
-   if (strategy && history.length > 0) {
-    const signal = strategy.detectBreakout(history);
-    if (signal && signal.confidence > 0.8) {
-     playSound("breakout");
-     console.log("\n🚨 HIGH CONFIDENCE BREAKOUT DETECTED!");
-     console.log(`Symbol: ${symbol}`);
-     console.log(`Type: ${signal.type}`);
-     console.log(`Price: ${signal.price.toFixed(2)}`);
-     console.log(`Confidence: ${(signal.confidence * 100).toFixed(1)}%`);
-     console.log("Confirmations:");
-     Object.entries(signal.confirmations).forEach(([key, value]) => {
-      if (typeof value === "boolean") {
-       console.log(`  ${key}: ${value ? "✓" : "✗"}`);
-      } else if (key === "timeElapsed") {
-       console.log(`  ${key}: ${(value / 60000).toFixed(1)}min`);
-      } else if (key === "volumeIncrease") {
-       console.log(`  ${key}: ${(value * 100).toFixed(1)}%`);
-      }
-     });
-     console.log("\n");
-    }
+   if (!strategy || history.length === 0) {
+     return {
+       confidence: 0,
+       type: null,
+       price: null,
+       volumeIncrease: 0,
+       timeElapsed: 0
+     };
    }
-  }
+
+   const signal = strategy.detectBreakout(history);
+   if (signal) {
+     if (signal.confidence > 0.8) {
+       playSound("breakout");
+     }
+     return {
+       confidence: signal.confidence,
+       type: signal.type,
+       price: signal.price,
+       volumeIncrease: signal.confirmations.volumeIncrease,
+       timeElapsed: signal.confirmations.timeElapsed
+     };
+   }
+
+   return {
+     confidence: 0,
+     type: null,
+     price: null,
+     volumeIncrease: 0,
+     timeElapsed: 0
+   };
  }
 }
 
