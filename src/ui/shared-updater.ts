@@ -13,6 +13,7 @@ export function updateBreakoutBox(
     // Handle symbol-display case with Map
     breakoutData = Array.from(data.entries())
       .map(([sym, signal]) => [
+        ["", ""],
         ["Symbol", sym],
         [
           "Volume Increase",
