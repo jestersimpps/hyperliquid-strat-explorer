@@ -92,7 +92,8 @@ class BackgroundMonitor {
       return {
         symbol,
         currentCandle,
-        dayAgoCandle: history[0]
+        dayAgoCandle: history[0],
+        volumeUSD: parseFloat(currentCandle.v) * parseFloat(currentCandle.c)
       };
     })
     .sort((a, b) => a.symbol.localeCompare(b.symbol)); // Sort by symbol name
